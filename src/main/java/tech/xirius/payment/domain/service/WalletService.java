@@ -7,6 +7,7 @@ import tech.xirius.payment.domain.repository.WalletTransactionRepositoryPort;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 public class WalletService {
@@ -49,4 +50,9 @@ public class WalletService {
                 .orElseThrow(() -> new IllegalArgumentException("La billetera no existe"));
         return wallet.getBalance();
     }
+
+    public List<WalletTransaction> consultarTransacciones(UUID userId) {
+        return transactionRepository.findByUserId(userId);
+    }
+
 }
