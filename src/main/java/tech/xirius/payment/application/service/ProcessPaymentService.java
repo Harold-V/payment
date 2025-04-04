@@ -1,29 +1,7 @@
 package tech.xirius.payment.application.service;
 
-import org.springframework.stereotype.Service;
-import tech.xirius.payment.application.port.out.PaymentGatewayPort;
-import tech.xirius.payment.domain.service.WalletService;
+import tech.xirius.payment.application.port.in.ProcessPaymentUseCase;
 
-import java.math.BigDecimal;
-import java.util.UUID;
+public class ProcessPaymentService implements ProcessPaymentUseCase {
 
-@Service
-public class ProcessPaymentService {
-
-    private final PaymentGatewayPort payUGateway;
-    private final WalletService walletService;
-
-    public ProcessPaymentService(PaymentGatewayPort payUGateway, WalletService walletService) {
-        this.payUGateway = payUGateway;
-        this.walletService = walletService;
-    }
-
-    public void procesarRecarga(UUID userId, BigDecimal monto, String referencia) {
-        boolean pagoExitoso = payUGateway.procesarPago(referencia, monto, userId);
-        if (pagoExitoso) {
-            walletService.recargarSaldo(userId, monto);
-        } else {
-            throw new IllegalStateException("El pago fue rechazado por PayU");
-        }
-    }
 }

@@ -1,5 +1,5 @@
 package tech.xirius.payment.application.port.in;
 
-public interface ProcessPaymentUseCase {
+public interface RechargeWalletUseCase {
 
 }

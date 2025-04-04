@@ -1,6 +1,7 @@
 package tech.xirius.payment.infraestructure.web.dto;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
-public record SaldoResponse(BigDecimal saldo) {
+public record DeductRequest(UUID userId, BigDecimal monto) {
 }
