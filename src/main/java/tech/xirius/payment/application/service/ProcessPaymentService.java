@@ -1,19 +1,19 @@
 package tech.xirius.payment.application.service;
 
 import org.springframework.stereotype.Service;
-import tech.xirius.payment.application.port.out.PayUGateway;
+import tech.xirius.payment.application.port.out.PaymentGatewayPort;
 import tech.xirius.payment.domain.service.WalletService;
 
 import java.math.BigDecimal;
 import java.util.UUID;
 
 @Service
-public class ProcesarRecargaService {
+public class ProcessPaymentService {
 
-    private final PayUGateway payUGateway;
+    private final PaymentGatewayPort payUGateway;
     private final WalletService walletService;
 
-    public ProcesarRecargaService(PayUGateway payUGateway, WalletService walletService) {
+    public ProcessPaymentService(PaymentGatewayPort payUGateway, WalletService walletService) {
         this.payUGateway = payUGateway;
         this.walletService = walletService;
     }

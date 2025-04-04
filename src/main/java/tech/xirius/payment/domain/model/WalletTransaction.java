@@ -1,7 +1,7 @@
 package tech.xirius.payment.domain.model;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.UUID;
 
 import lombok.AllArgsConstructor;
@@ -13,13 +13,13 @@ import lombok.Setter;
 @AllArgsConstructor
 public class WalletTransaction {
     public enum Type {
-        RECARGA, COMPRA
+        RECARGA, COMPRA // Debito y credito
     }
 
     private UUID transactionId;
-    private UUID userId;
+    private UUID userId; // String mongo objectId
     private BigDecimal amount;
     private Type type;
-    private LocalDateTime timestamp;
+    private ZonedDateTime timestamp;
 
 }

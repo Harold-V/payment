@@ -71,12 +71,6 @@
 			<scope>runtime</scope>
 		</dependency>
 
-		<dependency>
-			<groupId>com.payu.sdk</groupId>
-			<artifactId>payu-sdk</artifactId>
-			<version>1.5.0</version>
-		</dependency>
-
 	</dependencies>
 
 	<build>
