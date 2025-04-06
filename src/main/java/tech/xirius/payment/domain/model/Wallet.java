@@ -1,5 +1,54 @@
 package tech.xirius.payment.domain.model;
 
-public class Wallet {
+import java.util.Objects;
 
+public class Wallet {
+    private final String userId;
+    private Money balance;
+
+    public Wallet(String userId, Money balance) {
+        this.userId = userId;
+        this.balance = balance;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public Money getBalance() {
+        return balance;
+    }
+
+    // Métodos de negocio
+    public void addFunds(Money amount) {
+        if (!this.balance.getCurrency().equals(amount.getCurrency())) {
+            throw new IllegalArgumentException("Cannot add funds with different currency");
+        }
+        this.balance = this.balance.add(amount);
+    }
+
+    public void deductFunds(Money amount) {
+        if (!this.balance.getCurrency().equals(amount.getCurrency())) {
+            throw new IllegalArgumentException("Cannot deduct funds with different currency");
+        }
+        if (this.balance.getAmount().compareTo(amount.getAmount()) < 0) {
+            throw new IllegalStateException("Insufficient funds");
+        }
+        this.balance = this.balance.subtract(amount);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        Wallet wallet = (Wallet) o;
+        return Objects.equals(userId, wallet.userId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(userId);
+    }
 }
