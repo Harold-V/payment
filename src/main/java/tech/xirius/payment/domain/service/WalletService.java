@@ -6,6 +6,7 @@ import tech.xirius.payment.domain.model.WalletTransaction;
 import tech.xirius.payment.domain.repository.WalletRepositoryPort;
 import tech.xirius.payment.domain.repository.WalletTransactionRepositoryPort;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -16,6 +17,10 @@ public class WalletService {
     public WalletService(WalletRepositoryPort walletRepository, WalletTransactionRepositoryPort transactionRepository) {
         this.walletRepository = walletRepository;
         this.transactionRepository = transactionRepository;
+    }
+
+    public List<WalletTransaction> getTransactionsByUserId(String userId) {
+        return transactionRepository.findByUserId(userId);
     }
 
     public Wallet getOrCreateWallet(String userId, Money initialBalance) {
