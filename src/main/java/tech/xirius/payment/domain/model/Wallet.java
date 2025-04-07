@@ -19,7 +19,6 @@ public class Wallet {
         return balance;
     }
 
-    // Métodos de negocio
     public void addFunds(Money amount) {
         if (!this.balance.getCurrency().equals(amount.getCurrency())) {
             throw new IllegalArgumentException("Cannot add funds with different currency");

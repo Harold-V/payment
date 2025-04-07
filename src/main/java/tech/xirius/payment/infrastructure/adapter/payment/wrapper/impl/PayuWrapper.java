@@ -38,7 +38,6 @@ public class PayuWrapper implements PaymentGatewayWrapper {
     public Payment processPayment(Payment payment) {
         Map<String, Object> payload = buildTransactionPayload(payment);
 
-        // 👉 Genera la firma y agrégala
         String signature = generateSignature(payment);
         Map<String, Object> transaction = (Map<String, Object>) payload.get("transaction");
         Map<String, Object> order = (Map<String, Object>) transaction.get("order");
@@ -48,17 +47,21 @@ public class PayuWrapper implements PaymentGatewayWrapper {
 
         if (response != null && response.containsKey("transactionResponse")) {
             Map<String, Object> txResponse = (Map<String, Object>) response.get("transactionResponse");
-            String state = (String) txResponse.get("state");
+            if (txResponse != null && txResponse.get("state") != null) {
+                String state = (String) txResponse.get("state");
 
-            switch (state.toUpperCase()) {
-                case "APPROVED" -> payment.complete();
-                case "DECLINED", "ERROR" -> payment.fail();
-                case "PENDING" -> {
-                    /* Mantener PENDING */ }
-                default -> payment.cancel(); // fallback
+                switch (state.toUpperCase()) {
+                    case "APPROVED" -> payment.complete();
+                    case "DECLINED", "ERROR" -> payment.fail();
+                    case "PENDING" -> {
+                        /* Mantener PENDING */ }
+                    default -> payment.cancel(); // fallback
+                }
+            } else {
+                payment.fail(); // si txResponse es null
             }
         } else {
-            payment.fail(); // fallback
+            payment.fail(); // si la respuesta es null o no contiene transactionResponse
         }
 
         return payment;
@@ -66,7 +69,7 @@ public class PayuWrapper implements PaymentGatewayWrapper {
 
     @Override
     public PaymentStatus getStatus(Payment payment) {
-        // Optional: puedes implementar una verificación real aquí
+
         return PaymentStatus.COMPLETED;
     }
 

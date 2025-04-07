@@ -24,7 +24,6 @@ public class Money {
         return currency;
     }
 
-    // Métodos de negocio para operaciones con Money
     public Money add(Money other) {
         if (!this.currency.equals(other.currency)) {
             throw new IllegalArgumentException("Cannot add money with different currencies");
@@ -39,7 +38,6 @@ public class Money {
         return new Money(this.amount.subtract(other.amount), this.currency);
     }
 
-    // Equals, hashCode y toString
     @Override
     public boolean equals(Object o) {
         if (this == o)

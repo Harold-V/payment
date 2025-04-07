@@ -8,7 +8,7 @@ import tech.xirius.payment.domain.service.WalletService;
 
 import java.util.UUID;
 
-@Service // 🔥 Necesario para registrar el bean correctamente
+@Service
 public class RechargeWalletService implements RechargeWalletUseCase {
 
     private final WalletService walletService;

@@ -33,7 +33,7 @@ public class WalletRepositoryAdapter implements WalletRepositoryPort {
     }
 
     private Wallet mapToDomain(WalletEntity entity) {
-        Money balance = Money.of(entity.getBalance(), Currency.USD); // Default currency for simplicity
+        Money balance = Money.of(entity.getBalance(), Currency.USD);
         return new Wallet(entity.getUserId(), balance);
     }
 

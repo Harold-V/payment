@@ -21,11 +21,9 @@ public class ProcessPaymentService implements ProcessPaymentUseCase {
 
     @Override
     public Payment processPayment(String userId, Money amount, PaymentMethod paymentMethod, PaymentProvider provider) {
-        // Create a new payment
         Payment payment = Payment.createPayment(userId, amount, paymentMethod, provider);
         payment = paymentService.createPayment(payment);
 
-        // Process payment through the payment gateway
         Payment processedPayment = paymentGatewayPort.processPayment(payment);
 
         return processedPayment;
@@ -36,10 +34,8 @@ public class ProcessPaymentService implements ProcessPaymentUseCase {
         Payment payment = paymentService.getPaymentById(paymentId)
                 .orElseThrow(() -> new IllegalArgumentException("Payment not found: " + paymentId));
 
-        // Check with the payment gateway for the latest status
         PaymentStatus latestStatus = paymentGatewayPort.checkPaymentStatus(payment);
 
-        // Update the payment status if it has changed
         if (payment.getStatus() != latestStatus) {
             payment = paymentService.updatePaymentStatus(paymentId, latestStatus);
         }

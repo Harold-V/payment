@@ -66,7 +66,6 @@ public class Payment {
         return timestamp;
     }
 
-    // Business methods
     public void complete() {
         this.status = PaymentStatus.COMPLETED;
     }
