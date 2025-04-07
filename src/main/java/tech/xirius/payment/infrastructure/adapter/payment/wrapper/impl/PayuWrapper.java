@@ -7,8 +7,9 @@ import tech.xirius.payment.domain.model.Payment;
 import tech.xirius.payment.domain.model.PaymentStatus;
 import tech.xirius.payment.infrastructure.adapter.payment.wrapper.PaymentGatewayWrapper;
 
-import java.math.BigDecimal;
-import java.time.format.DateTimeFormatter;
+import java.math.RoundingMode;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -32,12 +33,35 @@ public class PayuWrapper implements PaymentGatewayWrapper {
 
     private final RestTemplate restTemplate = new RestTemplate();
 
+    @SuppressWarnings("unchecked")
     @Override
     public Payment processPayment(Payment payment) {
         Map<String, Object> payload = buildTransactionPayload(payment);
+
+        // 👉 Genera la firma y agrégala
+        String signature = generateSignature(payment);
+        Map<String, Object> transaction = (Map<String, Object>) payload.get("transaction");
+        Map<String, Object> order = (Map<String, Object>) transaction.get("order");
+        order.put("signature", signature);
+
         Map<?, ?> response = restTemplate.postForObject(payuApiUrl, payload, Map.class);
-        // TODO: Parse response and update status based on result
-        return payment; // Devolver actualizado si lo deseas
+
+        if (response != null && response.containsKey("transactionResponse")) {
+            Map<String, Object> txResponse = (Map<String, Object>) response.get("transactionResponse");
+            String state = (String) txResponse.get("state");
+
+            switch (state.toUpperCase()) {
+                case "APPROVED" -> payment.complete();
+                case "DECLINED", "ERROR" -> payment.fail();
+                case "PENDING" -> {
+                    /* Mantener PENDING */ }
+                default -> payment.cancel(); // fallback
+            }
+        } else {
+            payment.fail(); // fallback
+        }
+
+        return payment;
     }
 
     @Override
@@ -83,4 +107,28 @@ public class PayuWrapper implements PaymentGatewayWrapper {
         tx.put("transaction", transaction);
         return tx;
     }
+
+    private String generateSignature(Payment payment) {
+        String referenceCode = payment.getId().toString();
+        String value = payment.getAmount().getAmount()
+                .setScale(1, RoundingMode.HALF_UP)
+                .toString();
+        String currency = payment.getAmount().getCurrency().name();
+
+        String rawSignature = String.format("%s~%s~%s~%s~%s",
+                apiKey, merchantId, referenceCode, value, currency);
+
+        try {
+            MessageDigest md = MessageDigest.getInstance("MD5");
+            byte[] digest = md.digest(rawSignature.getBytes());
+            StringBuilder sb = new StringBuilder();
+            for (byte b : digest) {
+                sb.append(String.format("%02x", b));
+            }
+            return sb.toString();
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("Could not generate signature", e);
+        }
+    }
+
 }
