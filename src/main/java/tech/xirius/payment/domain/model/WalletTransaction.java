@@ -1,6 +1,6 @@
 package tech.xirius.payment.domain.model;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -9,10 +9,10 @@ public class WalletTransaction {
     private final String userId;
     private final Money amount;
     private final String type;
-    private final LocalDateTime timestamp;
+    private final ZonedDateTime timestamp;
     private final UUID paymentId;
 
-    public WalletTransaction(UUID id, String userId, Money amount, String type, LocalDateTime timestamp,
+    public WalletTransaction(UUID id, String userId, Money amount, String type, ZonedDateTime timestamp,
             UUID paymentId) {
         this.id = id;
         this.userId = userId;
@@ -23,7 +23,7 @@ public class WalletTransaction {
     }
 
     // Constructor para transacciones sin payment asociado
-    public WalletTransaction(UUID id, String userId, Money amount, String type, LocalDateTime timestamp) {
+    public WalletTransaction(UUID id, String userId, Money amount, String type, ZonedDateTime timestamp) {
         this(id, userId, amount, type, timestamp, null);
     }
 
@@ -44,7 +44,7 @@ public class WalletTransaction {
         return type;
     }
 
-    public LocalDateTime getTimestamp() {
+    public ZonedDateTime getTimestamp() {
         return timestamp;
     }
 
@@ -54,22 +54,11 @@ public class WalletTransaction {
 
     // Factory methods
     public static WalletTransaction createRechargeTransaction(String userId, Money amount, UUID paymentId) {
-        return new WalletTransaction(
-                UUID.randomUUID(),
-                userId,
-                amount,
-                "RECHARGE",
-                LocalDateTime.now(),
-                paymentId);
+        return new WalletTransaction(UUID.randomUUID(), userId, amount, "RECHARGE", ZonedDateTime.now(), paymentId);
     }
 
     public static WalletTransaction createDeductTransaction(String userId, Money amount) {
-        return new WalletTransaction(
-                UUID.randomUUID(),
-                userId,
-                amount,
-                "DEDUCT",
-                LocalDateTime.now());
+        return new WalletTransaction(UUID.randomUUID(), userId, amount, "DEDUCT", ZonedDateTime.now(), null);
     }
 
     @Override

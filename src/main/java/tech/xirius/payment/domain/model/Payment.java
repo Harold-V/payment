@@ -1,6 +1,6 @@
 package tech.xirius.payment.domain.model;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -11,10 +11,11 @@ public class Payment {
     private PaymentStatus status;
     private final PaymentMethod paymentMethod;
     private final PaymentProvider provider;
-    private final LocalDateTime timestamp;
+
+    private final ZonedDateTime timestamp;
 
     public Payment(UUID id, String userId, Money amount, PaymentStatus status,
-            PaymentMethod paymentMethod, PaymentProvider provider, LocalDateTime timestamp) {
+            PaymentMethod paymentMethod, PaymentProvider provider, ZonedDateTime timestamp) {
         this.id = id;
         this.userId = userId;
         this.amount = amount;
@@ -24,7 +25,6 @@ public class Payment {
         this.timestamp = timestamp;
     }
 
-    // Factory method
     public static Payment createPayment(String userId, Money amount, PaymentMethod paymentMethod,
             PaymentProvider provider) {
         return new Payment(
@@ -34,7 +34,7 @@ public class Payment {
                 PaymentStatus.PENDING,
                 paymentMethod,
                 provider,
-                LocalDateTime.now());
+                ZonedDateTime.now());
     }
 
     // Getters
@@ -62,7 +62,7 @@ public class Payment {
         return provider;
     }
 
-    public LocalDateTime getTimestamp() {
+    public ZonedDateTime getTimestamp() {
         return timestamp;
     }
 

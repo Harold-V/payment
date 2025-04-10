@@ -6,7 +6,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.UUID;
 
 @Entity
@@ -33,13 +33,13 @@ public class PaymentEntity {
     private String provider;
 
     @Column(nullable = false)
-    private LocalDateTime timestamp;
+    private ZonedDateTime timestamp;
 
     public PaymentEntity() {
     }
 
     public PaymentEntity(UUID id, String userId, BigDecimal amount, String status,
-            String paymentMethod, String provider, LocalDateTime timestamp) {
+            String paymentMethod, String provider, ZonedDateTime timestamp) {
         this.id = id;
         this.userId = userId;
         this.amount = amount;
@@ -98,11 +98,11 @@ public class PaymentEntity {
         this.provider = provider;
     }
 
-    public LocalDateTime getTimestamp() {
+    public ZonedDateTime getTimestamp() {
         return timestamp;
     }
 
-    public void setTimestamp(LocalDateTime timestamp) {
+    public void setTimestamp(ZonedDateTime timestamp) {
         this.timestamp = timestamp;
     }
 }
