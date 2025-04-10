@@ -17,8 +17,8 @@ public class WalletTransactionEntity {
     @Column(name = "transaction_id")
     private UUID id;
 
-    @Column(name = "user_id", nullable = false)
-    private String userId;
+    @Column(name = "wallet_id", nullable = false)
+    private UUID walletId;
 
     @Column(nullable = false, precision = 38, scale = 2)
     private BigDecimal amount;
@@ -35,10 +35,10 @@ public class WalletTransactionEntity {
     public WalletTransactionEntity() {
     }
 
-    public WalletTransactionEntity(UUID id, String userId, BigDecimal amount, String type, ZonedDateTime timestamp,
+    public WalletTransactionEntity(UUID id, UUID walletId, BigDecimal amount, String type, ZonedDateTime timestamp,
             UUID paymentId) {
         this.id = id;
-        this.userId = userId;
+        this.walletId = walletId;
         this.amount = amount;
         this.type = type;
         this.timestamp = timestamp;
@@ -54,12 +54,12 @@ public class WalletTransactionEntity {
         this.id = id;
     }
 
-    public String getUserId() {
-        return userId;
+    public UUID getWalletId() {
+        return walletId;
     }
 
-    public void setUserId(String userId) {
-        this.userId = userId;
+    public void setWalletId(UUID walletId) {
+        this.walletId = walletId;
     }
 
     public BigDecimal getAmount() {

@@ -34,7 +34,7 @@ public class WalletRepositoryAdapter implements WalletRepositoryPort {
 
     private Wallet mapToDomain(WalletEntity entity) {
         Money balance = Money.of(entity.getBalance(), Currency.USD);
-        return new Wallet(entity.getId, entity.getUserId(), balance);
+        return new Wallet(entity.getUserId(), balance);
     }
 
     private WalletEntity mapToEntity(Wallet wallet) {

@@ -53,7 +53,7 @@ public class WalletTransactionRepositoryAdapter implements WalletTransactionRepo
     private WalletTransaction mapToDomain(WalletTransactionEntity entity) {
         return new WalletTransaction(
                 entity.getId(),
-                entity.getUserId(),
+                entity.getWalletId(),
                 Money.of(entity.getAmount(), Currency.USD),
                 entity.getType(),
                 entity.getTimestamp(),

@@ -33,7 +33,7 @@ public class WalletService {
                 .orElseThrow(() -> new IllegalStateException("Wallet not found for user: " + userId));
 
         wallet.addFunds(amount);
-        WalletTransaction transaction = WalletTransaction.createRechargeTransaction(userId, amount, paymentId);
+        WalletTransaction transaction = WalletTransaction.createRechargeTransaction(wallet.getId(), amount, paymentId);
 
         transactionRepository.save(transaction);
         return walletRepository.save(wallet);
@@ -49,7 +49,7 @@ public class WalletService {
             throw new IllegalStateException("Insufficient funds in wallet");
         }
 
-        WalletTransaction transaction = WalletTransaction.createDeductTransaction(userId, amount);
+        WalletTransaction transaction = WalletTransaction.createPurchaseTransaction(wallet.getId(), amount);
 
         transactionRepository.save(transaction);
         return walletRepository.save(wallet);

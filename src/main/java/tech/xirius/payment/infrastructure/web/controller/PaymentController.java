@@ -48,7 +48,6 @@ public class PaymentController {
     private PaymentResponse toDto(Payment payment) {
         return new PaymentResponse(
                 payment.getId(),
-                payment.getUserId(),
                 payment.getAmount().getAmount(),
                 payment.getAmount().getCurrency(),
                 payment.getPaymentMethod(),

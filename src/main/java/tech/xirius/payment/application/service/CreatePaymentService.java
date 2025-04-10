@@ -19,7 +19,7 @@ public class CreatePaymentService implements CreatePaymentUseCase {
 
     @Override
     public Payment createPayment(String userId, Money amount, PaymentMethod paymentMethod, PaymentProvider provider) {
-        Payment payment = Payment.createPayment(userId, amount, paymentMethod, provider);
+        Payment payment = Payment.createPayment(amount, paymentMethod, provider);
         return paymentService.createPayment(payment);
     }
 }

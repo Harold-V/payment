@@ -89,9 +89,8 @@ public class PayuWrapper implements PaymentGatewayWrapper {
         Map<String, Object> order = new HashMap<>();
         order.put("accountId", accountId);
         order.put("referenceCode", payment.getId().toString());
-        order.put("description", "Pago para " + payment.getUserId());
 
-        Map<String, Object> buyer = Map.of("fullName", payment.getUserId());
+        Map<String, Object> buyer = Map.of("Id Transaction", payment.getId().toString());
         order.put("buyer", buyer);
 
         Map<String, Object> amount = Map.of(

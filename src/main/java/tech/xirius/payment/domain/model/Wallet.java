@@ -8,8 +8,8 @@ public class Wallet {
     private final String userId;
     private Money balance;
 
-    public Wallet(UUID id, String userId, Money balance) {
-        this.id = id;
+    public Wallet(String userId, Money balance) {
+        this.id = UUID.randomUUID();
         this.userId = userId;
         this.balance = balance;
     }

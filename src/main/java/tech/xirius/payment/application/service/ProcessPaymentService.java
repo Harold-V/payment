@@ -21,7 +21,7 @@ public class ProcessPaymentService implements ProcessPaymentUseCase {
 
     @Override
     public Payment processPayment(String userId, Money amount, PaymentMethod paymentMethod, PaymentProvider provider) {
-        Payment payment = Payment.createPayment(userId, amount, paymentMethod, provider);
+        Payment payment = Payment.createPayment(amount, paymentMethod, provider);
         payment = paymentService.createPayment(payment);
 
         Payment processedPayment = paymentGatewayPort.processPayment(payment);

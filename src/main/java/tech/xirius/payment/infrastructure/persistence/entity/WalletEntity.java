@@ -6,13 +6,17 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 @Entity
 @Table(name = "wallets")
 public class WalletEntity {
 
     @Id
-    @Column(name = "user_id")
+    @Column(name = "id")
+    private UUID id;
+
+    @Column(name = "user_id", nullable = false, unique = true)
     private String userId;
 
     @Column(nullable = false, precision = 38, scale = 2)
@@ -22,8 +26,18 @@ public class WalletEntity {
     }
 
     public WalletEntity(String userId, BigDecimal balance) {
+        this.id = UUID.randomUUID();
         this.userId = userId;
         this.balance = balance;
+    }
+
+    // Getters and setters
+    public UUID getId() {
+        return id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
     }
 
     public String getUserId() {
