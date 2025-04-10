@@ -1,14 +1,21 @@
 package tech.xirius.payment.domain.model;
 
 import java.util.Objects;
+import java.util.UUID;
 
 public class Wallet {
+    private final UUID id;
     private final String userId;
     private Money balance;
 
-    public Wallet(String userId, Money balance) {
+    public Wallet(UUID id, String userId, Money balance) {
+        this.id = id;
         this.userId = userId;
         this.balance = balance;
+    }
+
+    public UUID getId() {
+        return id;
     }
 
     public String getUserId() {

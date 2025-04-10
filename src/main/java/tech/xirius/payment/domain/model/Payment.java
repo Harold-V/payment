@@ -6,18 +6,15 @@ import java.util.UUID;
 
 public class Payment {
     private final UUID id;
-    private final String userId;
     private final Money amount;
     private PaymentStatus status;
     private final PaymentMethod paymentMethod;
     private final PaymentProvider provider;
-
     private final ZonedDateTime timestamp;
 
-    public Payment(UUID id, String userId, Money amount, PaymentStatus status,
+    public Payment(UUID id, Money amount, PaymentStatus status,
             PaymentMethod paymentMethod, PaymentProvider provider, ZonedDateTime timestamp) {
         this.id = id;
-        this.userId = userId;
         this.amount = amount;
         this.status = status;
         this.paymentMethod = paymentMethod;
@@ -25,11 +22,9 @@ public class Payment {
         this.timestamp = timestamp;
     }
 
-    public static Payment createPayment(String userId, Money amount, PaymentMethod paymentMethod,
-            PaymentProvider provider) {
+    public static Payment createPayment(Money amount, PaymentMethod paymentMethod, PaymentProvider provider) {
         return new Payment(
                 UUID.randomUUID(),
-                userId,
                 amount,
                 PaymentStatus.PENDING,
                 paymentMethod,
@@ -40,10 +35,6 @@ public class Payment {
     // Getters
     public UUID getId() {
         return id;
-    }
-
-    public String getUserId() {
-        return userId;
     }
 
     public Money getAmount() {

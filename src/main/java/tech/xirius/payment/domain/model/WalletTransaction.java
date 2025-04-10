@@ -6,16 +6,16 @@ import java.util.UUID;
 
 public class WalletTransaction {
     private final UUID id;
-    private final String userId;
+    private final UUID walletId;
     private final Money amount;
     private final String type;
     private final ZonedDateTime timestamp;
     private final UUID paymentId;
 
-    public WalletTransaction(UUID id, String userId, Money amount, String type, ZonedDateTime timestamp,
+    public WalletTransaction(UUID id, UUID walletId, Money amount, String type, ZonedDateTime timestamp,
             UUID paymentId) {
         this.id = id;
-        this.userId = userId;
+        this.walletId = walletId;
         this.amount = amount;
         this.type = type;
         this.timestamp = timestamp;
@@ -23,8 +23,8 @@ public class WalletTransaction {
     }
 
     // Constructor para transacciones sin payment asociado
-    public WalletTransaction(UUID id, String userId, Money amount, String type, ZonedDateTime timestamp) {
-        this(id, userId, amount, type, timestamp, null);
+    public WalletTransaction(UUID id, UUID walletId, Money amount, String type, ZonedDateTime timestamp) {
+        this(id, walletId, amount, type, timestamp, null);
     }
 
     // Getters
@@ -32,8 +32,8 @@ public class WalletTransaction {
         return id;
     }
 
-    public String getUserId() {
-        return userId;
+    public UUID getWalletId() {
+        return walletId;
     }
 
     public Money getAmount() {
@@ -53,12 +53,16 @@ public class WalletTransaction {
     }
 
     // Factory methods
-    public static WalletTransaction createRechargeTransaction(String userId, Money amount, UUID paymentId) {
-        return new WalletTransaction(UUID.randomUUID(), userId, amount, "RECHARGE", ZonedDateTime.now(), paymentId);
+    public static WalletTransaction createRechargeTransaction(UUID walletId, Money amount, UUID paymentId) {
+        return new WalletTransaction(UUID.randomUUID(), walletId, amount, "RECHARGE", ZonedDateTime.now(), paymentId);
     }
 
-    public static WalletTransaction createDeductTransaction(String userId, Money amount) {
-        return new WalletTransaction(UUID.randomUUID(), userId, amount, "DEDUCT", ZonedDateTime.now(), null);
+    public static WalletTransaction createPurchaseTransaction(UUID walletId, Money amount) {
+        return new WalletTransaction(UUID.randomUUID(), walletId, amount, "PURCHASE", ZonedDateTime.now(), null);
+    }
+
+    public static WalletTransaction createRefundTransaction(UUID walletId, Money amount) {
+        return new WalletTransaction(UUID.randomUUID(), walletId, amount, "REFUND", ZonedDateTime.now(), null);
     }
 
     @Override

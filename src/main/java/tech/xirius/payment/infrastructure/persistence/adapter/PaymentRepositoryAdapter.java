@@ -31,7 +31,6 @@ public class PaymentRepositoryAdapter implements PaymentRepositoryPort {
     private PaymentEntity mapToEntity(Payment payment) {
         return new PaymentEntity(
                 payment.getId(),
-                payment.getUserId(),
                 payment.getAmount().getAmount(),
                 payment.getStatus().name(),
                 payment.getPaymentMethod().name(),
@@ -42,7 +41,6 @@ public class PaymentRepositoryAdapter implements PaymentRepositoryPort {
     private Payment mapToDomain(PaymentEntity entity) {
         return new Payment(
                 entity.getId(),
-                entity.getUserId(),
                 Money.of(entity.getAmount(), Currency.USD),
                 PaymentStatus.valueOf(entity.getStatus()),
                 PaymentMethod.valueOf(entity.getPaymentMethod()),

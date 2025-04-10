@@ -43,7 +43,7 @@ public class WalletTransactionRepositoryAdapter implements WalletTransactionRepo
     private WalletTransactionEntity mapToEntity(WalletTransaction tx) {
         return new WalletTransactionEntity(
                 tx.getId(),
-                tx.getUserId(),
+                tx.getWalletId(),
                 tx.getAmount().getAmount(),
                 tx.getType(),
                 tx.getTimestamp(),
