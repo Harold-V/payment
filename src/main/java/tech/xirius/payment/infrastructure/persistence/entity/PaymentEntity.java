@@ -10,7 +10,7 @@ import java.time.ZonedDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "payments")
+@Table(name = "payment")
 public class PaymentEntity {
 
     @Id
