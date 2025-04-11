@@ -9,12 +9,11 @@ import tech.xirius.payment.domain.model.PaymentProvider;
 import tech.xirius.payment.domain.model.PaymentStatus;
 
 public record PaymentResponse(
-        UUID id,
-        UUID walletId,
-        BigDecimal amount,
-        Currency currency,
-        PaymentMethod paymentMethod,
-        PaymentProvider provider,
-        PaymentStatus status,
-        ZonedDateTime timestamp) {
+                UUID id,
+                BigDecimal amount,
+                Currency currency,
+                PaymentMethod paymentMethod,
+                PaymentProvider provider,
+                PaymentStatus status,
+                ZonedDateTime timestamp) {
 }

@@ -1,8 +1,8 @@
 package tech.xirius.payment.application.port.in;
 
-import tech.xirius.payment.domain.model.Money;
-import tech.xirius.payment.domain.model.Wallet;
+import java.math.BigDecimal;
+import tech.xirius.payment.domain.model.Currency;
 
 public interface DeductFromWalletUseCase {
-    Wallet deductFromWallet(String userId, Money amount);
+    void deduct(String userId, BigDecimal amount, Currency currency);
 }

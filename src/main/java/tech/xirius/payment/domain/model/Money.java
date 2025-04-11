@@ -3,6 +3,9 @@ package tech.xirius.payment.domain.model;
 import java.math.BigDecimal;
 import java.util.Objects;
 
+import lombok.Getter;
+
+@Getter
 public class Money {
     private final BigDecimal amount;
     private final Currency currency;
@@ -14,14 +17,6 @@ public class Money {
 
     public static Money of(BigDecimal amount, Currency currency) {
         return new Money(amount, currency);
-    }
-
-    public BigDecimal getAmount() {
-        return amount;
-    }
-
-    public Currency getCurrency() {
-        return currency;
     }
 
     public Money add(Money other) {
@@ -46,6 +41,10 @@ public class Money {
             return false;
         Money money = (Money) o;
         return Objects.equals(amount, money.amount) && currency == money.currency;
+    }
+
+    public boolean isGreaterThanOrEqual(Money other) {
+        return this.amount.compareTo(other.amount) >= 0;
     }
 
     @Override

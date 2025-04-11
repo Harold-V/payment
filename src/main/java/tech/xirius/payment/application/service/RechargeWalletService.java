@@ -1,24 +1,37 @@
 package tech.xirius.payment.application.service;
 
-import org.springframework.stereotype.Service;
 import tech.xirius.payment.application.port.in.RechargeWalletUseCase;
+import tech.xirius.payment.domain.model.Currency;
 import tech.xirius.payment.domain.model.Money;
 import tech.xirius.payment.domain.model.Wallet;
-import tech.xirius.payment.domain.service.WalletService;
+import tech.xirius.payment.domain.model.WalletTransaction;
+import tech.xirius.payment.domain.repository.WalletRepositoryPort;
+import tech.xirius.payment.domain.repository.WalletTransactionRepositoryPort;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
-@Service
 public class RechargeWalletService implements RechargeWalletUseCase {
 
-    private final WalletService walletService;
+    private final WalletRepositoryPort walletRepository;
+    private final WalletTransactionRepositoryPort transactionRepository;
 
-    public RechargeWalletService(WalletService walletService) {
-        this.walletService = walletService;
+    public RechargeWalletService(WalletRepositoryPort walletRepository,
+            WalletTransactionRepositoryPort transactionRepository) {
+        this.walletRepository = walletRepository;
+        this.transactionRepository = transactionRepository;
     }
 
     @Override
-    public Wallet rechargeWallet(String userId, Money amount, UUID paymentId) {
-        return walletService.rechargeWallet(userId, amount, paymentId);
+    public void recharge(String userId, BigDecimal amount) {
+        Wallet wallet = walletRepository.findByUserId(userId)
+                .orElse(new Wallet(UUID.randomUUID(), userId, new Money(BigDecimal.ZERO, Currency.COP)));
+
+        BigDecimal previousBalance = wallet.getBalance().getAmount();
+        wallet.recharge(new Money(amount, Currency.COP));
+        walletRepository.save(wallet);
+
+        WalletTransaction tx = WalletTransaction.recharge(wallet.getId(), amount, previousBalance);
+        transactionRepository.save(tx);
     }
 }

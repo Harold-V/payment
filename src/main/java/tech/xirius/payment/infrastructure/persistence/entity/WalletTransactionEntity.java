@@ -35,8 +35,8 @@ public class WalletTransactionEntity {
     public WalletTransactionEntity() {
     }
 
-    public WalletTransactionEntity(UUID id, UUID walletId, BigDecimal amount, String type, ZonedDateTime timestamp,
-            UUID paymentId) {
+    public WalletTransactionEntity(UUID id, UUID walletId, BigDecimal amount, String type,
+            ZonedDateTime timestamp, UUID paymentId) {
         this.id = id;
         this.walletId = walletId;
         this.amount = amount;
@@ -93,4 +93,5 @@ public class WalletTransactionEntity {
     public void setPaymentId(UUID paymentId) {
         this.paymentId = paymentId;
     }
+
 }
