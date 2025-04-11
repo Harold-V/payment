@@ -8,6 +8,7 @@ import tech.xirius.payment.domain.repository.WalletRepositoryPort;
 import tech.xirius.payment.infrastructure.persistence.entity.WalletEntity;
 import tech.xirius.payment.infrastructure.persistence.repositories.WalletJpaRepository;
 
+import java.math.BigDecimal;
 import java.util.Optional;
 
 @Component
@@ -47,6 +48,11 @@ public class WalletRepositoryAdapter implements WalletRepositoryPort {
                 new Money(
                         entity.getBalance(),
                         Currency.COP));
+    }
+
+    @Override
+    public Optional<BigDecimal> findBalanceByUserId(String userId) {
+        return walletJpaRepository.findBalanceByUserId(userId);
     }
 
 }
