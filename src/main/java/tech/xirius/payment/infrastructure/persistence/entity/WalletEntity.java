@@ -4,10 +4,14 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.util.UUID;
 
+@Getter
+@Setter
 @Entity
 @Table(name = "wallet")
 public class WalletEntity {
@@ -21,5 +25,4 @@ public class WalletEntity {
     @Column(nullable = false, precision = 38, scale = 2)
     private BigDecimal balance;
 
-    // Getters, setters y método de conversión a dominio
 }

@@ -4,13 +4,17 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
 import java.util.UUID;
 
+@Getter
+@Setter
 @Entity
-@Table(name = "wallet_transactions")
+@Table(name = "wallet_transaction")
 public class WalletTransactionEntity {
 
     @Id
@@ -20,78 +24,37 @@ public class WalletTransactionEntity {
     @Column(name = "wallet_id", nullable = false)
     private UUID walletId;
 
+    @Column(name = "payment_id")
+    private UUID paymentId;
+
     @Column(nullable = false, precision = 38, scale = 2)
     private BigDecimal amount;
 
     @Column(nullable = false)
     private String type;
 
+    @Column(name = "previous_balance", nullable = false, precision = 38, scale = 2)
+    private BigDecimal previousBalance;
+
+    @Column(name = "new_balance", nullable = false, precision = 38, scale = 2)
+    private BigDecimal newBalance;
+
     @Column(nullable = false)
     private ZonedDateTime timestamp;
-
-    @Column(name = "payment_id")
-    private UUID paymentId;
 
     public WalletTransactionEntity() {
     }
 
-    public WalletTransactionEntity(UUID id, UUID walletId, BigDecimal amount, String type,
-            ZonedDateTime timestamp, UUID paymentId) {
+    public WalletTransactionEntity(UUID id, UUID walletId, UUID paymentId,
+            BigDecimal amount, String type, BigDecimal previousBalance,
+            BigDecimal newBalance, ZonedDateTime timestamp) {
         this.id = id;
         this.walletId = walletId;
+        this.paymentId = paymentId;
         this.amount = amount;
         this.type = type;
-        this.timestamp = timestamp;
-        this.paymentId = paymentId;
-    }
-
-    // Getters and setters
-    public UUID getId() {
-        return id;
-    }
-
-    public void setId(UUID id) {
-        this.id = id;
-    }
-
-    public UUID getWalletId() {
-        return walletId;
-    }
-
-    public void setWalletId(UUID walletId) {
-        this.walletId = walletId;
-    }
-
-    public BigDecimal getAmount() {
-        return amount;
-    }
-
-    public void setAmount(BigDecimal amount) {
-        this.amount = amount;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public ZonedDateTime getTimestamp() {
-        return timestamp;
-    }
-
-    public void setTimestamp(ZonedDateTime timestamp) {
+        this.previousBalance = previousBalance;
+        this.newBalance = newBalance;
         this.timestamp = timestamp;
     }
-
-    public UUID getPaymentId() {
-        return paymentId;
-    }
-
-    public void setPaymentId(UUID paymentId) {
-        this.paymentId = paymentId;
-    }
-
 }

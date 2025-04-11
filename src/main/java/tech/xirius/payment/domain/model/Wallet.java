@@ -27,6 +27,7 @@ public class Wallet {
             throw new InsufficientBalanceException(
                     "Saldo insuficiente.");
         }
+        validateCurrency(amount);
         this.balance = this.balance.subtract(amount);
     }
 

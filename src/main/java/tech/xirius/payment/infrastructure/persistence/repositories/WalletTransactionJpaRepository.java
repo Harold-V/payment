@@ -7,5 +7,5 @@ import java.util.List;
 import java.util.UUID;
 
 public interface WalletTransactionJpaRepository extends JpaRepository<WalletTransactionEntity, UUID> {
-    List<WalletTransactionEntity> findByUserId(String userId);
+    List<WalletTransactionEntity> findAllByWalletId(UUID walletId);
 }

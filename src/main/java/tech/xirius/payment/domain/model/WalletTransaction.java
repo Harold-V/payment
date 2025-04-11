@@ -54,5 +54,4 @@ public class WalletTransaction {
                 previousBalance.subtract(amount),
                 ZonedDateTime.now());
     }
-
 }

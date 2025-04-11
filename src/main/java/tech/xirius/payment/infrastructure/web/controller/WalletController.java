@@ -27,7 +27,7 @@ public class WalletController {
 
     @PostMapping("/deduct")
     public ResponseEntity<Void> deduct(@RequestBody DeductRequest request) {
-        deductUseCase.deduct(request.getUserId(), request.getAmount(), request.getCurrency());
+        deductUseCase.deduct(request.getUserId(), request.getAmount());
         return ResponseEntity.ok().build();
     }
 }

@@ -1,6 +1,7 @@
 package tech.xirius.payment.infrastructure.persistence.adapter;
 
 import org.springframework.stereotype.Component;
+
 import tech.xirius.payment.domain.model.WalletTransaction;
 import tech.xirius.payment.domain.repository.WalletTransactionRepositoryPort;
 
