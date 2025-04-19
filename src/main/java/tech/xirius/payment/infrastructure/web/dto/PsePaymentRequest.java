@@ -8,6 +8,8 @@ import java.math.BigDecimal;
 @Getter
 @Setter
 public class PsePaymentRequest {
+
+    private String userId;
     private String referenceCode;
     private String description;
     private BigDecimal amount;

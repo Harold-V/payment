@@ -1,5 +1,7 @@
 package tech.xirius.payment.infrastructure.persistence.adapter;
 
+import java.util.Optional;
+
 import org.springframework.stereotype.Component;
 import tech.xirius.payment.domain.repository.PaymentRepositoryPort;
 import tech.xirius.payment.infrastructure.persistence.entity.PaymentEntity;
@@ -18,4 +20,10 @@ public class PaymentRepositoryAdapter implements PaymentRepositoryPort {
     public void save(PaymentEntity payment) {
         jpaRepository.save(payment);
     }
+
+    @Override
+    public Optional<PaymentEntity> findByReferenceCode(String referenceCode) {
+        return jpaRepository.findByReferenceCode(referenceCode);
+    }
+
 }

@@ -7,6 +7,9 @@ import lombok.Setter;
 
 import java.util.UUID;
 
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -21,6 +24,7 @@ public class PaymentMetadataEntity {
     @Column(nullable = false)
     private String provider;
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "json_metadata", columnDefinition = "jsonb")
     private String jsonMetadata;
 
