@@ -1,5 +1,8 @@
 package tech.xirius.payment.infrastructure.persistence.adapter;
 
+import java.util.Optional;
+import java.util.UUID;
+
 import org.springframework.stereotype.Component;
 import tech.xirius.payment.domain.repository.PaymentMetadataRepositoryPort;
 import tech.xirius.payment.infrastructure.persistence.entity.PaymentMetadataEntity;
@@ -18,4 +21,10 @@ public class PaymentMetadataRepositoryAdapter implements PaymentMetadataReposito
     public void save(PaymentMetadataEntity metadata) {
         jpaRepository.save(metadata);
     }
+
+    @Override
+    public Optional<PaymentMetadataEntity> findById(UUID paymentId) {
+        return jpaRepository.findById(paymentId);
+    }
+
 }

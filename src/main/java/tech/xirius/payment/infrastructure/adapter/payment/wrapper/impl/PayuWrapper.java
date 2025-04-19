@@ -169,6 +169,7 @@ public class PayuWrapper implements PaymentGatewayWrapper {
 
         Map<String, Object> body = response.getBody() != null ? new HashMap<>(response.getBody()) : new HashMap<>();
         body.put("referenceCode", referenceCode);
+        body.put("userId", req.getUserId()); // 👈 importante para después recargar
 
         try {
             ObjectMapper mapper = new ObjectMapper();

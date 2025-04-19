@@ -1,5 +1,10 @@
 package tech.xirius.payment.domain.model;
 
 public enum PaymentStatus {
-    PENDING, COMPLETED, FAILED, CANCELLED, REFUNDED
+    RECHARGE,
+    PURCHASE,
+    REFUND,
+    FAILED,
+    PENDING,
+    REJECTED
 }
