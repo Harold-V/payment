@@ -13,6 +13,7 @@ import tech.xirius.payment.domain.repository.*;
 import com.fasterxml.jackson.core.type.TypeReference;
 
 import java.math.BigDecimal;
+import java.time.ZonedDateTime;
 import java.util.Map;
 import java.util.UUID;
 
@@ -28,33 +29,51 @@ public class PayuWebhookController {
 
     @PostMapping("/notification")
     public ResponseEntity<Void> handleNotification(@RequestParam Map<String, String> payload) {
+        System.out.println("Notificación recibida: " + payload);
+
         String referenceCode = payload.get("reference_sale");
         String transactionState = payload.get("polTransactionState");
         String responseCode = payload.get("polResponseCode");
 
         if (referenceCode == null || transactionState == null || responseCode == null) {
+            System.out.println("Falta algún campo en la notificación");
             return ResponseEntity.badRequest().build();
         }
 
         paymentRepository.findByReferenceCode(referenceCode).ifPresent(payment -> {
+            System.out.println(
+                    "Pago encontrado: " + payment.getReferenceCode() + " con estado actual: " + payment.getStatus());
+
             String newStatus = mapStatus(transactionState, responseCode);
             payment.setStatus(newStatus);
             paymentRepository.save(payment);
+            System.out.println("Estado actualizado a: " + newStatus);
 
             metadataRepository.findById(payment.getId()).ifPresent(meta -> {
+                System.out.println("Metadata encontrada");
+                System.out.println("JSON Metadata: " + meta.getJsonMetadata());
+
                 String userId = extraerUserIdDesdeJson(meta.getJsonMetadata());
+                System.out.println("userId extraído: " + userId);
+
                 if (userId != null) {
                     Wallet wallet = walletRepository.findByUserId(userId)
                             .orElse(new Wallet(UUID.randomUUID(), userId, new Money(BigDecimal.ZERO, Currency.COP)));
 
-                    BigDecimal previousBalance = wallet.getBalance().getAmount();
                     UUID walletId = wallet.getId();
+                    BigDecimal previousBalance = wallet.getBalance().getAmount();
 
-                    // Crear siempre la transacción
-                    WalletTransaction tx = WalletTransaction.recharge(walletId, payment.getAmount(), previousBalance);
+                    WalletTransaction tx = new WalletTransaction(
+                            UUID.randomUUID(),
+                            walletId,
+                            payment.getId(),
+                            payment.getAmount(),
+                            "RECHARGE",
+                            previousBalance,
+                            previousBalance.add(payment.getAmount()),
+                            ZonedDateTime.now());
                     walletTransactionRepository.save(tx);
 
-                    // Solo si está aprobado se actualiza el balance
                     if ("APPROVED".equalsIgnoreCase(newStatus)) {
                         wallet.recharge(new Money(payment.getAmount(), Currency.COP));
                         walletRepository.save(wallet);
@@ -85,19 +104,11 @@ public class PayuWebhookController {
             Map<String, Object> map = mapper.readValue(jsonMetadata, new TypeReference<>() {
             });
 
-            Object trxObj = map.get("transaction");
-            if (!(trxObj instanceof Map<?, ?> trxMap))
-                return null;
-
-            Object extraObj = trxMap.get("extraParameters");
-            if (!(extraObj instanceof Map<?, ?> extraParams))
-                return null;
-
-            Object userId = extraParams.get("PSE_REFERENCE3");
+            Object userId = map.get("userId");
             return userId != null ? userId.toString() : null;
+
         } catch (Exception e) {
             return null;
         }
     }
-
 }
