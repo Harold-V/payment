@@ -2,19 +2,17 @@ package tech.xirius.payment.infrastructure.adapter.payment.wrapper.impl;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import org.springframework.http.*;
 import tech.xirius.payment.infrastructure.adapter.payment.wrapper.PaymentGatewayWrapper;
 import tech.xirius.payment.infrastructure.web.dto.PsePaymentRequest;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
-
 import java.util.*;
 
 @Component
@@ -42,15 +40,8 @@ public class PayuWrapper implements PaymentGatewayWrapper {
         request.put("language", "es");
         request.put("command", "GET_BANKS_LIST");
         request.put("test", false);
-
-        Map<String, Object> merchant = Map.of(
-                "apiLogin", apiLogin,
-                "apiKey", apiKey);
-        request.put("merchant", merchant);
-
-        request.put("bankListInformation", Map.of(
-                "paymentMethod", "PSE",
-                "paymentCountry", "CO"));
+        request.put("merchant", Map.of("apiLogin", apiLogin, "apiKey", apiKey));
+        request.put("bankListInformation", Map.of("paymentMethod", "PSE", "paymentCountry", "CO"));
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -107,9 +98,7 @@ public class PayuWrapper implements PaymentGatewayWrapper {
         request.put("command", "SUBMIT_TRANSACTION");
         request.put("test", false);
 
-        request.put("merchant", Map.of(
-                "apiLogin", apiLogin,
-                "apiKey", apiKey));
+        request.put("merchant", Map.of("apiLogin", apiLogin, "apiKey", apiKey));
 
         Map<String, Object> address = Map.of(
                 "street1", req.getStreet1(),
@@ -143,13 +132,7 @@ public class PayuWrapper implements PaymentGatewayWrapper {
                 "contactPhone", req.getContactPhone(),
                 "dniNumber", req.getDniNumber(),
                 "dniType", req.getDniType(),
-                "billingAddress", Map.of(
-                        "street1", req.getStreet1(),
-                        "city", req.getCity(),
-                        "state", req.getState(),
-                        "country", req.getCountry(),
-                        "postalCode", req.getPostalCode(),
-                        "phone", req.getContactPhone()));
+                "billingAddress", address);
 
         Map<String, Object> extraParameters = Map.of(
                 "RESPONSE_URL", "https://midominio.com/respuesta",
@@ -177,14 +160,6 @@ public class PayuWrapper implements PaymentGatewayWrapper {
         headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(request, headers);
 
-        // Para debug visual:
-        try {
-            String jsonDebug = new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(request);
-            System.out.println("🔎 JSON enviado a PayU:\n" + jsonDebug);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
         ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
                 payuUrl,
                 HttpMethod.POST,
@@ -192,7 +167,17 @@ public class PayuWrapper implements PaymentGatewayWrapper {
                 new ParameterizedTypeReference<Map<String, Object>>() {
                 });
 
-        return response.getBody();
-    }
+        Map<String, Object> body = response.getBody() != null ? new HashMap<>(response.getBody()) : new HashMap<>();
+        body.put("referenceCode", referenceCode);
 
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            String jsonMetadata = mapper.writeValueAsString(body);
+            body.put("rawJson", jsonMetadata);
+        } catch (Exception e) {
+            throw new RuntimeException("Error al serializar respuesta PayU como JSON", e);
+        }
+
+        return body;
+    }
 }
