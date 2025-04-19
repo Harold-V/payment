@@ -9,6 +9,7 @@ import tech.xirius.payment.domain.repository.WalletRepositoryPort;
 import tech.xirius.payment.domain.repository.WalletTransactionRepositoryPort;
 
 import java.math.BigDecimal;
+import java.time.ZonedDateTime;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -39,4 +40,27 @@ public class RechargeWalletService implements RechargeWalletUseCase {
         transactionRepository.save(tx);
 
     }
+
+    @Override
+    public void recharge(String userId, BigDecimal amount, UUID paymentId) {
+        Wallet wallet = walletRepository.findByUserId(userId)
+                .orElse(new Wallet(UUID.randomUUID(), userId, new Money(BigDecimal.ZERO, Currency.COP)));
+
+        BigDecimal previousBalance = wallet.getBalance().getAmount();
+        wallet.recharge(new Money(amount, Currency.COP));
+        walletRepository.save(wallet);
+
+        WalletTransaction tx = new WalletTransaction(
+                UUID.randomUUID(),
+                wallet.getId(),
+                paymentId,
+                amount,
+                "RECHARGE",
+                previousBalance,
+                previousBalance.add(amount),
+                ZonedDateTime.now());
+
+        transactionRepository.save(tx);
+    }
+
 }

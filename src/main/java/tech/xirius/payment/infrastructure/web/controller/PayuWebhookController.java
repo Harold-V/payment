@@ -40,14 +40,22 @@ public class PayuWebhookController {
             payment.setStatus(newStatus);
             paymentRepository.save(payment);
 
-            if ("APPROVED".equalsIgnoreCase(newStatus)) {
-                metadataRepository.findById(payment.getId()).ifPresent(meta -> {
+            metadataRepository.findById(payment.getId()).ifPresent(meta -> {
+                try {
+                    ObjectMapper mapper = new ObjectMapper();
+                    String newJson = mapper.writeValueAsString(payload);
+                    meta.setJsonMetadata(newJson);
+                    metadataRepository.save(meta);
+                } catch (Exception ignored) {
+                }
+
+                if ("APPROVED".equalsIgnoreCase(newStatus)) {
                     String userId = extraerUserIdDesdeJson(meta.getJsonMetadata());
                     if (userId != null) {
-                        recargarWalletUseCase.recharge(userId, payment.getAmount());
+                        recargarWalletUseCase.recharge(userId, payment.getAmount(), payment.getId());
                     }
-                });
-            }
+                }
+            });
         });
 
         return ResponseEntity.ok().build();
@@ -82,7 +90,7 @@ public class PayuWebhookController {
             if (extraParams == null)
                 return null;
 
-            return (String) extraParams.get("PSE_REFERENCE3"); // Aquí guardaste el userId
+            return (String) extraParams.get("PSE_REFERENCE3");
         } catch (Exception e) {
             return null;
         }
