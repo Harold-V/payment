@@ -135,7 +135,7 @@ public class PayuWrapper implements PaymentGatewayWrapper {
                 "billingAddress", address);
 
         Map<String, Object> extraParameters = Map.of(
-                "RESPONSE_URL", "https://midominio.com/respuesta",
+                "RESPONSE_URL", "https://9f28-161-18-39-8.ngrok-free.app/webhook/payu/notification",
                 "PSE_REFERENCE1", req.getEmail(),
                 "FINANCIAL_INSTITUTION_CODE", req.getBankCode(),
                 "USER_TYPE", req.getUserType(),
