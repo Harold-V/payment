@@ -1,20 +1,20 @@
 package tech.xirius.payment.infrastructure.web.controller;
 
-import tech.xirius.payment.domain.repository.PaymentMetadataRepositoryPort;
-
-import java.util.Map;
-
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import lombok.RequiredArgsConstructor;
-import tech.xirius.payment.application.port.in.RechargeWalletUseCase;
-import tech.xirius.payment.domain.repository.PaymentRepositoryPort;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import tech.xirius.payment.domain.model.Currency;
+import tech.xirius.payment.domain.model.Money;
+import tech.xirius.payment.domain.model.Wallet;
+import tech.xirius.payment.domain.model.WalletTransaction;
+import tech.xirius.payment.domain.repository.*;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+
+import java.math.BigDecimal;
+import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/webhook/payu")
@@ -23,7 +23,8 @@ public class PayuWebhookController {
 
     private final PaymentRepositoryPort paymentRepository;
     private final PaymentMetadataRepositoryPort metadataRepository;
-    private final RechargeWalletUseCase recargarWalletUseCase;
+    private final WalletRepositoryPort walletRepository;
+    private final WalletTransactionRepositoryPort walletTransactionRepository;
 
     @PostMapping("/notification")
     public ResponseEntity<Void> handleNotification(@RequestParam Map<String, String> payload) {
@@ -41,18 +42,22 @@ public class PayuWebhookController {
             paymentRepository.save(payment);
 
             metadataRepository.findById(payment.getId()).ifPresent(meta -> {
-                try {
-                    ObjectMapper mapper = new ObjectMapper();
-                    String newJson = mapper.writeValueAsString(payload);
-                    meta.setJsonMetadata(newJson);
-                    metadataRepository.save(meta);
-                } catch (Exception ignored) {
-                }
+                String userId = extraerUserIdDesdeJson(meta.getJsonMetadata());
+                if (userId != null) {
+                    Wallet wallet = walletRepository.findByUserId(userId)
+                            .orElse(new Wallet(UUID.randomUUID(), userId, new Money(BigDecimal.ZERO, Currency.COP)));
 
-                if ("APPROVED".equalsIgnoreCase(newStatus)) {
-                    String userId = extraerUserIdDesdeJson(meta.getJsonMetadata());
-                    if (userId != null) {
-                        recargarWalletUseCase.recharge(userId, payment.getAmount(), payment.getId());
+                    BigDecimal previousBalance = wallet.getBalance().getAmount();
+                    UUID walletId = wallet.getId();
+
+                    // Crear siempre la transacción
+                    WalletTransaction tx = WalletTransaction.recharge(walletId, payment.getAmount(), previousBalance);
+                    walletTransactionRepository.save(tx);
+
+                    // Solo si está aprobado se actualiza el balance
+                    if ("APPROVED".equalsIgnoreCase(newStatus)) {
+                        wallet.recharge(new Money(payment.getAmount(), Currency.COP));
+                        walletRepository.save(wallet);
                     }
                 }
             });
@@ -77,22 +82,22 @@ public class PayuWebhookController {
     private String extraerUserIdDesdeJson(String jsonMetadata) {
         try {
             ObjectMapper mapper = new ObjectMapper();
-            @SuppressWarnings("unchecked")
-            Map<String, Object> map = mapper.readValue(jsonMetadata, Map.class);
+            Map<String, Object> map = mapper.readValue(jsonMetadata, new TypeReference<>() {
+            });
 
-            @SuppressWarnings("unchecked")
-            Map<String, Object> transaction = (Map<String, Object>) map.get("transaction");
-            if (transaction == null)
+            Object trxObj = map.get("transaction");
+            if (!(trxObj instanceof Map<?, ?> trxMap))
                 return null;
 
-            @SuppressWarnings("unchecked")
-            Map<String, Object> extraParams = (Map<String, Object>) transaction.get("extraParameters");
-            if (extraParams == null)
+            Object extraObj = trxMap.get("extraParameters");
+            if (!(extraObj instanceof Map<?, ?> extraParams))
                 return null;
 
-            return (String) extraParams.get("PSE_REFERENCE3");
+            Object userId = extraParams.get("PSE_REFERENCE3");
+            return userId != null ? userId.toString() : null;
         } catch (Exception e) {
             return null;
         }
     }
+
 }
