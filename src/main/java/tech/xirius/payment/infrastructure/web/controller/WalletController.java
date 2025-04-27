@@ -1,61 +1,61 @@
 package tech.xirius.payment.infrastructure.web.controller;
 
-import java.math.BigDecimal;
-import java.util.List;
-
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import tech.xirius.payment.application.port.in.GetWalletTransactionsUseCase;
-import tech.xirius.payment.domain.model.Currency;
-import tech.xirius.payment.domain.model.WalletTransaction;
 import org.springframework.web.bind.annotation.*;
 import tech.xirius.payment.application.port.in.DeductFromWalletUseCase;
 import tech.xirius.payment.application.port.in.GetWalletBalanceUseCase;
+import tech.xirius.payment.application.port.in.GetWalletTransactionsUseCase;
 import tech.xirius.payment.application.port.in.RechargeWalletUseCase;
+import tech.xirius.payment.domain.model.Currency;
+import tech.xirius.payment.domain.model.WalletTransaction;
 import tech.xirius.payment.infrastructure.web.dto.DeductRequest;
 import tech.xirius.payment.infrastructure.web.dto.RechargeRequest;
 import tech.xirius.payment.infrastructure.web.dto.TransactionResponse;
 
+import jakarta.validation.Valid;
+import java.math.BigDecimal;
+import java.util.List;
+
+/**
+ * Recurso REST para operaciones relacionadas con Wallets de usuarios.
+ */
+@Slf4j
 @RestController
-@RequestMapping("/wallet")
+@RequestMapping("/api/v1/wallet")
+@RequiredArgsConstructor
 public class WalletController {
 
     private final RechargeWalletUseCase rechargeUseCase;
     private final DeductFromWalletUseCase deductUseCase;
+    private final GetWalletBalanceUseCase getBalanceUseCase;
     private final GetWalletTransactionsUseCase getTransactionsUseCase;
 
-    public WalletController(
-            RechargeWalletUseCase rechargeUseCase,
-            DeductFromWalletUseCase deductUseCase,
-            GetWalletBalanceUseCase getBalanceUseCase,
-            GetWalletTransactionsUseCase getTransactionsUseCase) {
-        this.rechargeUseCase = rechargeUseCase;
-        this.deductUseCase = deductUseCase;
-        this.getBalanceUseCase = getBalanceUseCase;
-        this.getTransactionsUseCase = getTransactionsUseCase;
-    }
-
     @PostMapping("/recharge")
-    public ResponseEntity<Void> recharge(@RequestBody RechargeRequest request) {
+    public ResponseEntity<Void> recharge(@Valid @RequestBody RechargeRequest request) {
+        log.info("Recargando wallet para usuario: {}", request.getUserId());
         rechargeUseCase.recharge(request.getUserId(), request.getAmount());
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/deduct")
-    public ResponseEntity<Void> deduct(@RequestBody DeductRequest request) {
+    public ResponseEntity<Void> deduct(@Valid @RequestBody DeductRequest request) {
+        log.info("Descontando saldo wallet para usuario: {}", request.getUserId());
         deductUseCase.deduct(request.getUserId(), request.getAmount());
         return ResponseEntity.ok().build();
     }
 
-    private final GetWalletBalanceUseCase getBalanceUseCase;
-
     @GetMapping("/balance/{userId}")
     public ResponseEntity<BigDecimal> getBalance(@PathVariable String userId) {
+        log.info("Consultando balance de wallet para usuario: {}", userId);
         BigDecimal balance = getBalanceUseCase.getBalanceByUserId(userId);
         return ResponseEntity.ok(balance);
     }
 
     @GetMapping("/transactions/{userId}")
     public ResponseEntity<List<TransactionResponse>> getTransactions(@PathVariable String userId) {
+        log.info("Consultando transacciones de wallet para usuario: {}", userId);
         List<WalletTransaction> transactions = getTransactionsUseCase.getTransactionsByUserId(userId);
 
         List<TransactionResponse> response = transactions.stream()
@@ -71,5 +71,4 @@ public class WalletController {
 
         return ResponseEntity.ok(response);
     }
-
 }

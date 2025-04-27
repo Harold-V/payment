@@ -4,12 +4,14 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.util.UUID;
-
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
+import java.util.UUID;
+
+/**
+ * Entidad que almacena los metadatos asociados a un pago.
+ */
 @Getter
 @Setter
 @NoArgsConstructor
@@ -18,10 +20,14 @@ import org.hibernate.type.SqlTypes;
 public class PaymentMetadataEntity {
 
     @Id
-    @Column(name = "payment_id")
+    @Column(name = "payment_id", nullable = false, updatable = false)
     private UUID paymentId;
 
-    @Column(nullable = false)
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "payment_id", referencedColumnName = "payment_id", insertable = false, updatable = false, foreignKey = @ForeignKey(name = "fk_payment_metadata_payment"))
+    private PaymentEntity payment;
+
+    @Column(nullable = false, length = 50)
     private String provider;
 
     @JdbcTypeCode(SqlTypes.JSON)

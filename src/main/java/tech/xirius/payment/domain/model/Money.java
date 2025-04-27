@@ -1,10 +1,12 @@
 package tech.xirius.payment.domain.model;
 
 import java.math.BigDecimal;
-
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
+/**
+ * Representa una cantidad de dinero junto con su moneda.
+ */
 @Getter
 @EqualsAndHashCode
 public class Money {
@@ -21,16 +23,12 @@ public class Money {
     }
 
     public Money add(Money other) {
-        if (!this.currency.equals(other.currency)) {
-            throw new IllegalArgumentException("Cannot add money with different currencies");
-        }
+        validateCurrency(other);
         return new Money(this.amount.add(other.amount), this.currency);
     }
 
     public Money subtract(Money other) {
-        if (!this.currency.equals(other.currency)) {
-            throw new IllegalArgumentException("Cannot subtract money with different currencies");
-        }
+        validateCurrency(other);
         return new Money(this.amount.subtract(other.amount), this.currency);
     }
 
@@ -41,5 +39,11 @@ public class Money {
     @Override
     public String toString() {
         return amount + " " + currency;
+    }
+
+    private void validateCurrency(Money other) {
+        if (!this.currency.equals(other.currency)) {
+            throw new IllegalArgumentException("Cannot operate money with different currencies");
+        }
     }
 }

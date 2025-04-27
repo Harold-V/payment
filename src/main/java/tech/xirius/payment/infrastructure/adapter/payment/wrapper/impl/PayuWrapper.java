@@ -1,6 +1,7 @@
 package tech.xirius.payment.infrastructure.adapter.payment.wrapper.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
@@ -15,8 +16,12 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.*;
 
+/**
+ * Wrapper para integración con la pasarela de pagos PayU.
+ */
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class PayuWrapper implements PaymentGatewayPort {
 
     private final RestTemplate restTemplate;
@@ -39,8 +44,46 @@ public class PayuWrapper implements PaymentGatewayPort {
     @Value("${payu.response.url}")
     private String responseUrl;
 
-    public PayuWrapper(RestTemplate restTemplate) {
-        this.restTemplate = restTemplate;
+    @Override
+    public Map<String, Object> processPsePayment(PsePaymentRequest req) {
+        String referenceCode = generateReferenceCode();
+        BigDecimal value = req.getAmount();
+        String currency = "COP";
+        String signature = generateSignature(referenceCode, value, currency);
+
+        Map<String, Object> request = buildRequest(req, referenceCode, signature, value, currency);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(request, headers);
+
+        try {
+            ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
+                    payuUrl,
+                    HttpMethod.POST,
+                    entity,
+                    new ParameterizedTypeReference<>() {
+                    });
+
+            Map<String, Object> body = response.getBody() != null ? new HashMap<>(response.getBody()) : new HashMap<>();
+            body.put("referenceCode", referenceCode);
+            body.put("userId", req.getUserId());
+
+            ObjectMapper mapper = new ObjectMapper();
+            String jsonMetadata = mapper.writeValueAsString(body);
+            body.put("rawJson", jsonMetadata);
+
+            log.info("Petición enviada a PayU: {}",
+                    mapper.writerWithDefaultPrettyPrinter().writeValueAsString(request));
+            log.info("Respuesta recibida de PayU: {}",
+                    mapper.writerWithDefaultPrettyPrinter().writeValueAsString(body));
+
+            return body;
+        } catch (Exception e) {
+            log.error("Error procesando pago PSE con PayU", e);
+            throw new RuntimeException("Error al procesar el pago con PayU", e);
+        }
     }
 
     public List<Map<String, Object>> getAvailableBanks() {
@@ -55,25 +98,31 @@ public class PayuWrapper implements PaymentGatewayPort {
         headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(request, headers);
 
-        ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
-                payuUrl,
-                HttpMethod.POST,
-                entity,
-                new ParameterizedTypeReference<>() {
-                });
+        try {
+            ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
+                    payuUrl,
+                    HttpMethod.POST,
+                    entity,
+                    new ParameterizedTypeReference<>() {
+                    });
 
-        if (response.getStatusCode().is2xxSuccessful()) {
-            Map<String, Object> body = response.getBody();
-            if (body != null && body.containsKey("banks")) {
-                Object banksObj = body.get("banks");
-                if (banksObj instanceof List<?> list && !list.isEmpty() && list.get(0) instanceof Map) {
+            if (response.getStatusCode().is2xxSuccessful()) {
+                Map<String, Object> body = response.getBody();
+                if (body != null && body.containsKey("banks")) {
                     @SuppressWarnings("unchecked")
-                    List<Map<String, Object>> banks = (List<Map<String, Object>>) banksObj;
+                    List<Map<String, Object>> banks = (List<Map<String, Object>>) body.get("banks");
                     return banks;
                 }
             }
+            return Collections.emptyList();
+        } catch (Exception e) {
+            log.error("Error obteniendo bancos disponibles de PayU", e);
+            return Collections.emptyList();
         }
-        return Collections.emptyList();
+    }
+
+    private String generateReferenceCode() {
+        return "ORD-" + System.currentTimeMillis();
     }
 
     private String generateSignature(String referenceCode, BigDecimal amount, String currency) {
@@ -87,24 +136,13 @@ public class PayuWrapper implements PaymentGatewayPort {
             }
             return sb.toString();
         } catch (Exception e) {
-            throw new RuntimeException("Error generating PayU signature", e);
+            log.error("Error generando la firma de PayU", e);
+            throw new RuntimeException("Error generando la firma de PayU", e);
         }
     }
 
-    @Override
-    public Map<String, Object> processPsePayment(PsePaymentRequest req) {
-        String referenceCode = "ORD-" + System.currentTimeMillis();
-        BigDecimal value = req.getAmount();
-        String currency = "COP";
-        String signature = generateSignature(referenceCode, value, currency);
-
-        Map<String, Object> request = new HashMap<>();
-        request.put("language", "es");
-        request.put("command", "SUBMIT_TRANSACTION");
-        request.put("test", false);
-
-        request.put("merchant", Map.of("apiLogin", apiLogin, "apiKey", apiKey));
-
+    private Map<String, Object> buildRequest(PsePaymentRequest req, String referenceCode, String signature,
+            BigDecimal value, String currency) {
         Map<String, Object> address = Map.of(
                 "street1", req.getStreet1(),
                 "city", req.getCity(),
@@ -159,31 +197,13 @@ public class PayuWrapper implements PaymentGatewayPort {
         transaction.put("cookie", req.getCookie());
         transaction.put("userAgent", req.getUserAgent());
 
-        request.put("transaction", transaction);
+        Map<String, Object> fullRequest = new HashMap<>();
+        fullRequest.put("language", "es");
+        fullRequest.put("command", "SUBMIT_TRANSACTION");
+        fullRequest.put("test", false);
+        fullRequest.put("merchant", Map.of("apiLogin", apiLogin, "apiKey", apiKey));
+        fullRequest.put("transaction", transaction);
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(request, headers);
-
-        ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
-                payuUrl,
-                HttpMethod.POST,
-                entity,
-                new ParameterizedTypeReference<>() {
-                });
-
-        Map<String, Object> body = response.getBody() != null ? new HashMap<>(response.getBody()) : new HashMap<>();
-        body.put("referenceCode", referenceCode);
-        body.put("userId", req.getUserId());
-
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            String jsonMetadata = mapper.writeValueAsString(body);
-            body.put("rawJson", jsonMetadata);
-        } catch (Exception e) {
-            throw new RuntimeException("Error al serializar respuesta PayU como JSON", e);
-        }
-
-        return body;
+        return fullRequest;
     }
 }

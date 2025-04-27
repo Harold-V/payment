@@ -1,6 +1,9 @@
 package tech.xirius.payment.application.service;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import tech.xirius.payment.application.port.in.ProcessPsePaymentUseCase;
 import tech.xirius.payment.application.port.in.RechargeWalletUseCase;
 import tech.xirius.payment.application.port.out.PaymentGatewayPort;
@@ -14,7 +17,13 @@ import java.time.ZonedDateTime;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * Servicio de aplicación para procesar pagos a través de PayU.
+ */
+@Slf4j
 @Service
+@Transactional
+@RequiredArgsConstructor
 public class ProcessPaymentService implements ProcessPsePaymentUseCase {
 
     private final PaymentGatewayPort paymentGatewayPort;
@@ -22,27 +31,18 @@ public class ProcessPaymentService implements ProcessPsePaymentUseCase {
     private final PaymentMetadataRepositoryPort metadataRepository;
     private final RechargeWalletUseCase rechargeWalletUseCase;
 
-    public ProcessPaymentService(PaymentGatewayPort paymentGatewayPort,
-            PaymentRepositoryPort paymentRepository,
-            PaymentMetadataRepositoryPort metadataRepository,
-            RechargeWalletUseCase rechargeWalletUseCase) {
-        this.paymentGatewayPort = paymentGatewayPort;
-        this.paymentRepository = paymentRepository;
-        this.metadataRepository = metadataRepository;
-        this.rechargeWalletUseCase = rechargeWalletUseCase;
-    }
-
     @Override
     public Map<String, Object> processPsePayment(PsePaymentRequest request) {
+        log.info("Iniciando procesamiento de pago PSE para usuario: {}", request.getUserId());
+
         Map<String, Object> response = paymentGatewayPort.processPsePayment(request);
 
         UUID paymentId = UUID.randomUUID();
         String status = extractStatus(response);
         String jsonMetadata = (String) response.get("rawJson");
-        String referenceCode = (String) response.get("referenceCode"); // <-- Agregado
+        String referenceCode = (String) response.get("referenceCode");
         String provider = "PAYU";
 
-        // Guardar entidad Payment
         PaymentEntity payment = new PaymentEntity(
                 paymentId,
                 referenceCode,
@@ -53,16 +53,17 @@ public class ProcessPaymentService implements ProcessPsePaymentUseCase {
                 ZonedDateTime.now());
         paymentRepository.save(payment);
 
-        // Guardar metadatos
         PaymentMetadataEntity metadata = new PaymentMetadataEntity(
                 paymentId,
                 provider,
                 jsonMetadata);
         metadataRepository.save(metadata);
 
-        // Recargar wallet solo si el estado lo permite
-        if (status.equalsIgnoreCase("APPROVED")) {
-            rechargeWalletUseCase.recharge(request.getUserId(), request.getAmount());
+        if ("APPROVED".equalsIgnoreCase(status)) {
+            rechargeWalletUseCase.recharge(request.getUserId(), request.getAmount(), paymentId);
+            log.info("Recarga exitosa para usuario: {}", request.getUserId());
+        } else {
+            log.warn("El pago no fue aprobado. Estado: {}", status);
         }
 
         return response;
