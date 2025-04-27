@@ -20,8 +20,8 @@ public class PaymentController {
     private final ProcessPsePaymentUseCase processPsePaymentUseCase;
 
     @PostMapping("/pse")
-    public ResponseEntity<Map<String, Object>> procesarPagoPse(@RequestBody PsePaymentRequest request) {
-        Map<String, Object> respuesta = processPsePaymentUseCase.procesarPagoPse(request);
+    public ResponseEntity<Map<String, Object>> processPsePayment(@RequestBody PsePaymentRequest request) {
+        Map<String, Object> respuesta = processPsePaymentUseCase.processPsePayment(request);
         return ResponseEntity.ok(respuesta);
     }
 

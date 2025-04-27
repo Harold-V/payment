@@ -5,18 +5,22 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
-import tech.xirius.payment.infrastructure.adapter.payment.wrapper.PaymentGatewayWrapper;
+
+import tech.xirius.payment.application.port.out.PaymentGatewayPort;
 import tech.xirius.payment.infrastructure.web.dto.PsePaymentRequest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.*;
 
+@Slf4j
 @Component
-public class PayuWrapper implements PaymentGatewayWrapper {
+public class PayuWrapper implements PaymentGatewayPort {
 
     @Value("${payu.api.url}")
     private String payuUrl;
@@ -169,7 +173,7 @@ public class PayuWrapper implements PaymentGatewayWrapper {
 
         Map<String, Object> body = response.getBody() != null ? new HashMap<>(response.getBody()) : new HashMap<>();
         body.put("referenceCode", referenceCode);
-        body.put("userId", req.getUserId()); // 👈 importante para después recargar
+        body.put("userId", req.getUserId());
 
         try {
             ObjectMapper mapper = new ObjectMapper();

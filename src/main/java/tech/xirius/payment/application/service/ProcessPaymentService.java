@@ -33,7 +33,7 @@ public class ProcessPaymentService implements ProcessPsePaymentUseCase {
     }
 
     @Override
-    public Map<String, Object> procesarPagoPse(PsePaymentRequest request) {
+    public Map<String, Object> processPsePayment(PsePaymentRequest request) {
         Map<String, Object> response = paymentGatewayPort.processPsePayment(request);
 
         UUID paymentId = UUID.randomUUID();

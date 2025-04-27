@@ -1,11 +1,12 @@
 package tech.xirius.payment.domain.model;
 
 import java.math.BigDecimal;
-import java.util.Objects;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 @Getter
+@EqualsAndHashCode
 public class Money {
     private final BigDecimal amount;
     private final Currency currency;
@@ -33,23 +34,8 @@ public class Money {
         return new Money(this.amount.subtract(other.amount), this.currency);
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
-        Money money = (Money) o;
-        return Objects.equals(amount, money.amount) && currency == money.currency;
-    }
-
     public boolean isGreaterThanOrEqual(Money other) {
         return this.amount.compareTo(other.amount) >= 0;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(amount, currency);
     }
 
     @Override

@@ -2,7 +2,6 @@ package tech.xirius.payment.infrastructure.adapter.payment;
 
 import org.springframework.stereotype.Component;
 import tech.xirius.payment.application.port.out.PaymentGatewayPort;
-import tech.xirius.payment.infrastructure.adapter.payment.wrapper.PaymentGatewayWrapper;
 import tech.xirius.payment.infrastructure.web.dto.PsePaymentRequest;
 
 import java.util.Map;
@@ -10,14 +9,14 @@ import java.util.Map;
 @Component
 public class PaymentGatewayAdapter implements PaymentGatewayPort {
 
-    private final PaymentGatewayWrapper wrapper;
+    private final PaymentGatewayPort paymentGatewayPort;
 
-    public PaymentGatewayAdapter(PaymentGatewayWrapper wrapper) {
-        this.wrapper = wrapper;
+    public PaymentGatewayAdapter(PaymentGatewayPort paymentGatewayPort) {
+        this.paymentGatewayPort = paymentGatewayPort;
     }
 
     @Override
     public Map<String, Object> processPsePayment(PsePaymentRequest request) {
-        return wrapper.processPsePayment(request);
+        return paymentGatewayPort.processPsePayment(request);
     }
 }

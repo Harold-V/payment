@@ -5,5 +5,5 @@ import tech.xirius.payment.infrastructure.web.dto.PsePaymentRequest;
 import java.util.Map;
 
 public interface ProcessPsePaymentUseCase {
-    Map<String, Object> procesarPagoPse(PsePaymentRequest request);
+    Map<String, Object> processPsePayment(PsePaymentRequest request);
 }
