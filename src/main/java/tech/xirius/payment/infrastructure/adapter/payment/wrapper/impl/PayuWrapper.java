@@ -1,17 +1,14 @@
 package tech.xirius.payment.infrastructure.adapter.payment.wrapper.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
-
 import tech.xirius.payment.application.port.out.PaymentGatewayPort;
 import tech.xirius.payment.infrastructure.web.dto.PsePaymentRequest;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
@@ -21,6 +18,8 @@ import java.util.*;
 @Slf4j
 @Component
 public class PayuWrapper implements PaymentGatewayPort {
+
+    private final RestTemplate restTemplate;
 
     @Value("${payu.api.url}")
     private String payuUrl;
@@ -37,9 +36,14 @@ public class PayuWrapper implements PaymentGatewayPort {
     @Value("${payu.merchant.id}")
     private String merchantId;
 
-    public List<Map<String, Object>> getAvailableBanks() {
-        RestTemplate restTemplate = new RestTemplate();
+    @Value("${payu.response.url}")
+    private String responseUrl;
 
+    public PayuWrapper(RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
+    }
+
+    public List<Map<String, Object>> getAvailableBanks() {
         Map<String, Object> request = new HashMap<>();
         request.put("language", "es");
         request.put("command", "GET_BANKS_LIST");
@@ -69,7 +73,6 @@ public class PayuWrapper implements PaymentGatewayPort {
                 }
             }
         }
-
         return Collections.emptyList();
     }
 
@@ -90,8 +93,6 @@ public class PayuWrapper implements PaymentGatewayPort {
 
     @Override
     public Map<String, Object> processPsePayment(PsePaymentRequest req) {
-        RestTemplate restTemplate = new RestTemplate();
-
         String referenceCode = "ORD-" + System.currentTimeMillis();
         BigDecimal value = req.getAmount();
         String currency = "COP";
@@ -119,9 +120,9 @@ public class PayuWrapper implements PaymentGatewayPort {
         order.put("language", "es");
         order.put("signature", signature);
         order.put("additionalValues", Map.of(
-                "TX_VALUE", Map.of("value", value.intValue(), "currency", currency),
-                "TX_TAX", Map.of("value", 0, "currency", currency),
-                "TX_TAX_RETURN_BASE", Map.of("value", 0, "currency", currency)));
+                "TX_VALUE", Map.of("value", value, "currency", currency),
+                "TX_TAX", Map.of("value", BigDecimal.ZERO, "currency", currency),
+                "TX_TAX_RETURN_BASE", Map.of("value", BigDecimal.ZERO, "currency", currency)));
         order.put("shippingAddress", address);
         order.put("buyer", Map.of(
                 "fullName", req.getFullName(),
@@ -139,7 +140,7 @@ public class PayuWrapper implements PaymentGatewayPort {
                 "billingAddress", address);
 
         Map<String, Object> extraParameters = Map.of(
-                "RESPONSE_URL", "https://9f28-161-18-39-8.ngrok-free.app/webhook/payu/notification",
+                "RESPONSE_URL", responseUrl,
                 "PSE_REFERENCE1", req.getEmail(),
                 "FINANCIAL_INSTITUTION_CODE", req.getBankCode(),
                 "USER_TYPE", req.getUserType(),
@@ -168,7 +169,7 @@ public class PayuWrapper implements PaymentGatewayPort {
                 payuUrl,
                 HttpMethod.POST,
                 entity,
-                new ParameterizedTypeReference<Map<String, Object>>() {
+                new ParameterizedTypeReference<>() {
                 });
 
         Map<String, Object> body = response.getBody() != null ? new HashMap<>(response.getBody()) : new HashMap<>();
