@@ -1,4 +1,4 @@
-package tech.xirius.payment.infrastructure.web.controller;
+package tech.xirius.payment.infrastructure.web.api.v1;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +20,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/webhook/payu")
 @RequiredArgsConstructor
-public class PayuWebhookController {
+public class PayuWebhookResource {
 
     private final PaymentRepositoryPort paymentRepository;
     private final PaymentMetadataRepositoryPort metadataRepository;

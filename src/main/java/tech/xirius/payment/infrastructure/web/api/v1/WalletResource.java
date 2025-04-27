@@ -1,4 +1,4 @@
-package tech.xirius.payment.infrastructure.web.controller;
+package tech.xirius.payment.infrastructure.web.api.v1;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,7 +25,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/wallet")
 @RequiredArgsConstructor
-public class WalletController {
+public class WalletResource {
 
     private final RechargeWalletUseCase rechargeUseCase;
     private final DeductFromWalletUseCase deductUseCase;

@@ -25,6 +25,9 @@ public class PaymentEntity {
     @Column(name = "payment_id", nullable = false, updatable = false)
     private UUID id;
 
+    @Column(name = "reference_code", nullable = false, unique = true)
+    private String referenceCode; // <-- 🔥 AGREGA ESTO
+
     @Column(nullable = false, precision = 19, scale = 2)
     private BigDecimal amount;
 
@@ -40,9 +43,11 @@ public class PaymentEntity {
     @Column(nullable = false)
     private ZonedDateTime timestamp;
 
+    // Constructor completo
     public PaymentEntity(UUID id, String referenceCode, BigDecimal amount, String status,
             String paymentMethod, String provider, ZonedDateTime timestamp) {
         this.id = id;
+        this.referenceCode = referenceCode;
         this.amount = amount;
         this.status = status;
         this.paymentMethod = paymentMethod;

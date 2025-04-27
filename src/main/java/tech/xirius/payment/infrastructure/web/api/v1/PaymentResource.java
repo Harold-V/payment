@@ -1,4 +1,4 @@
-package tech.xirius.payment.infrastructure.web.controller;
+package tech.xirius.payment.infrastructure.web.api.v1;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,7 +18,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/v1/payment")
 @RequiredArgsConstructor
-public class PaymentController {
+public class PaymentResource {
 
     private final PayuWrapper payuWrapper;
     private final ProcessPsePaymentUseCase processPsePaymentUseCase;

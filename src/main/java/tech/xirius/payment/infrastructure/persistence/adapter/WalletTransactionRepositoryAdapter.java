@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import tech.xirius.payment.domain.model.WalletTransaction;
 import tech.xirius.payment.domain.repository.WalletTransactionRepositoryPort;
+import tech.xirius.payment.infrastructure.persistence.entity.PaymentEntity;
+import tech.xirius.payment.infrastructure.persistence.entity.WalletEntity;
 import tech.xirius.payment.infrastructure.persistence.entity.WalletTransactionEntity;
 import tech.xirius.payment.infrastructure.persistence.repositories.WalletTransactionJpaRepository;
 
@@ -32,26 +34,38 @@ public class WalletTransactionRepositoryAdapter implements WalletTransactionRepo
     }
 
     private WalletTransactionEntity toEntity(WalletTransaction tx) {
-        return new WalletTransactionEntity(
-                tx.getTransactionId(),
-                tx.getWalletId(),
-                tx.getPaymentId(),
-                tx.getAmount(),
-                tx.getType(),
-                tx.getPreviousBalance(),
-                tx.getNewBalance(),
-                tx.getTimestamp());
+        WalletTransactionEntity entity = new WalletTransactionEntity();
+        entity.setId(tx.getTransactionId());
+
+        WalletEntity walletEntity = new WalletEntity();
+        walletEntity.setId(tx.getWalletId());
+        entity.setWallet(walletEntity);
+
+        if (tx.getPaymentId() != null) {
+            PaymentEntity paymentEntity = new PaymentEntity();
+            paymentEntity.setId(tx.getPaymentId());
+            entity.setPayment(paymentEntity);
+        }
+
+        entity.setAmount(tx.getAmount());
+        entity.setType(tx.getType());
+        entity.setPreviousBalance(tx.getPreviousBalance());
+        entity.setNewBalance(tx.getNewBalance());
+        entity.setTimestamp(tx.getTimestamp());
+
+        return entity;
     }
 
     private WalletTransaction toDomain(WalletTransactionEntity entity) {
         return new WalletTransaction(
                 entity.getId(),
-                entity.getWalletId(),
-                entity.getPaymentId(),
+                entity.getWallet().getId(),
+                entity.getPayment() != null ? entity.getPayment().getId() : null,
                 entity.getAmount(),
                 entity.getType(),
                 entity.getPreviousBalance(),
                 entity.getNewBalance(),
                 entity.getTimestamp());
     }
+
 }
