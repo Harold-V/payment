@@ -6,9 +6,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-import tech.xirius.payment.application.port.out.PaymentGatewayPort;
 import tech.xirius.payment.infrastructure.web.dto.PsePaymentRequest;
 
 import java.math.BigDecimal;
@@ -20,9 +19,9 @@ import java.util.*;
  * Wrapper para integración con la pasarela de pagos PayU.
  */
 @Slf4j
-@Component
+@Service
 @RequiredArgsConstructor
-public class PayuWrapper implements PaymentGatewayPort {
+public class PayuWrapper {
 
     private final RestTemplate restTemplate;
 
@@ -44,7 +43,6 @@ public class PayuWrapper implements PaymentGatewayPort {
     @Value("${payu.response.url}")
     private String responseUrl;
 
-    @Override
     public Map<String, Object> processPsePayment(PsePaymentRequest req) {
         String referenceCode = generateReferenceCode();
         BigDecimal value = req.getAmount();

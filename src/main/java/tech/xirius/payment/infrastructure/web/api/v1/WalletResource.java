@@ -58,8 +58,8 @@ public class WalletResource {
                 .map(tx -> {
                     TransactionResponse tr = transactionMapper.toResponse(tx);
                     return new TransactionResponse(
-                            tr.id(), // el id viene del mapper
-                            userId, // setear el userId manualmente
+                            tr.id(),
+                            userId,
                             tr.amount(),
                             tr.currency(),
                             tr.type(),
