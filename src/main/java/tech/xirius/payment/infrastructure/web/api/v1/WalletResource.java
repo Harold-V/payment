@@ -8,8 +8,7 @@ import tech.xirius.payment.application.port.in.DeductFromWalletUseCase;
 import tech.xirius.payment.application.port.in.GetWalletBalanceUseCase;
 import tech.xirius.payment.application.port.in.GetWalletTransactionsUseCase;
 import tech.xirius.payment.application.port.in.RechargeWalletUseCase;
-import tech.xirius.payment.domain.model.Currency;
-import tech.xirius.payment.domain.model.WalletTransaction;
+import tech.xirius.payment.infrastructure.persistence.mapper.TransactionMapper;
 import tech.xirius.payment.infrastructure.web.dto.DeductRequest;
 import tech.xirius.payment.infrastructure.web.dto.RechargeRequest;
 import tech.xirius.payment.infrastructure.web.dto.TransactionResponse;
@@ -18,9 +17,6 @@ import jakarta.validation.Valid;
 import java.math.BigDecimal;
 import java.util.List;
 
-/**
- * Recurso REST para operaciones relacionadas con Wallets de usuarios.
- */
 @Slf4j
 @RestController
 @RequestMapping("/api/v1/wallet")
@@ -31,6 +27,7 @@ public class WalletResource {
     private final DeductFromWalletUseCase deductUseCase;
     private final GetWalletBalanceUseCase getBalanceUseCase;
     private final GetWalletTransactionsUseCase getTransactionsUseCase;
+    private final TransactionMapper transactionMapper;
 
     @PostMapping("/recharge")
     public ResponseEntity<Void> recharge(@Valid @RequestBody RechargeRequest request) {
@@ -49,24 +46,26 @@ public class WalletResource {
     @GetMapping("/balance/{userId}")
     public ResponseEntity<BigDecimal> getBalance(@PathVariable String userId) {
         log.info("Consultando balance de wallet para usuario: {}", userId);
-        BigDecimal balance = getBalanceUseCase.getBalanceByUserId(userId);
-        return ResponseEntity.ok(balance);
+        return ResponseEntity.ok(getBalanceUseCase.getBalanceByUserId(userId));
     }
 
     @GetMapping("/transactions/{userId}")
     public ResponseEntity<List<TransactionResponse>> getTransactions(@PathVariable String userId) {
         log.info("Consultando transacciones de wallet para usuario: {}", userId);
-        List<WalletTransaction> transactions = getTransactionsUseCase.getTransactionsByUserId(userId);
 
-        List<TransactionResponse> response = transactions.stream()
-                .map(tx -> new TransactionResponse(
-                        tx.getTransactionId(),
-                        userId,
-                        tx.getAmount(),
-                        Currency.COP,
-                        tx.getType(),
-                        tx.getTimestamp(),
-                        tx.getPaymentId()))
+        List<TransactionResponse> response = getTransactionsUseCase.getTransactionsByUserId(userId)
+                .stream()
+                .map(tx -> {
+                    TransactionResponse tr = transactionMapper.toResponse(tx);
+                    return new TransactionResponse(
+                            tr.id(), // el id viene del mapper
+                            userId, // setear el userId manualmente
+                            tr.amount(),
+                            tr.currency(),
+                            tr.type(),
+                            tr.timestamp(),
+                            tr.paymentId());
+                })
                 .toList();
 
         return ResponseEntity.ok(response);

@@ -1,7 +1,9 @@
 package tech.xirius.payment.infrastructure.web.api.v1;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import tech.xirius.payment.domain.model.Currency;
@@ -10,13 +12,12 @@ import tech.xirius.payment.domain.model.Wallet;
 import tech.xirius.payment.domain.model.WalletTransaction;
 import tech.xirius.payment.domain.repository.*;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
 import java.util.Map;
 import java.util.UUID;
 
+@Slf4j
 @RestController
 @RequestMapping("/webhook/payu")
 @RequiredArgsConstructor
@@ -29,60 +30,64 @@ public class PayuWebhookResource {
 
     @PostMapping("/notification")
     public ResponseEntity<Void> handleNotification(@RequestParam Map<String, String> payload) {
-        System.out.println("Notificación recibida: " + payload);
+        log.info("Notificación recibida: {}", payload);
 
-        String referenceCode = payload.get("reference_sale");
-        String transactionState = payload.get("polTransactionState");
-        String responseCode = payload.get("polResponseCode");
+        try {
+            String referenceCode = payload.get("reference_sale");
+            String transactionState = payload.get("polTransactionState");
+            String responseCode = payload.get("polResponseCode");
 
-        if (referenceCode == null || transactionState == null || responseCode == null) {
-            System.out.println("Falta algún campo en la notificación");
+            if (referenceCode == null || transactionState == null || responseCode == null) {
+                log.warn("Faltan campos obligatorios en la notificación");
+                return ResponseEntity.badRequest().build();
+            }
+
+            paymentRepository.findByReferenceCode(referenceCode).ifPresent(payment -> {
+                log.info("Pago encontrado: {} con estado actual: {}", payment.getReferenceCode(), payment.getStatus());
+
+                String newStatus = mapStatus(transactionState, responseCode);
+                payment.setStatus(newStatus);
+                paymentRepository.save(payment);
+                log.info("Estado actualizado a: {}", newStatus);
+
+                metadataRepository.findById(payment.getId()).ifPresent(meta -> {
+                    log.info("Metadata encontrada para pago {}", payment.getId());
+
+                    String userId = extraerUserIdDesdeJson(meta.getJsonMetadata());
+                    if (userId != null) {
+                        log.info("userId extraído: {}", userId);
+
+                        Wallet wallet = walletRepository.findByUserId(userId)
+                                .orElse(new Wallet(UUID.randomUUID(), userId,
+                                        new Money(BigDecimal.ZERO, Currency.COP)));
+
+                        UUID walletId = wallet.getId();
+                        BigDecimal previousBalance = wallet.getBalance().getAmount();
+
+                        WalletTransaction tx = new WalletTransaction(
+                                UUID.randomUUID(),
+                                walletId,
+                                payment.getId(),
+                                payment.getAmount(),
+                                "RECHARGE",
+                                previousBalance,
+                                previousBalance.add(payment.getAmount()),
+                                ZonedDateTime.now());
+                        walletTransactionRepository.save(tx);
+
+                        if ("APPROVED".equalsIgnoreCase(newStatus)) {
+                            wallet.recharge(new Money(payment.getAmount(), Currency.COP));
+                            walletRepository.save(wallet);
+                        }
+                    }
+                });
+            });
+
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            log.error("Error procesando notificación de PayU", e);
             return ResponseEntity.badRequest().build();
         }
-
-        paymentRepository.findByReferenceCode(referenceCode).ifPresent(payment -> {
-            System.out.println(
-                    "Pago encontrado: " + payment.getReferenceCode() + " con estado actual: " + payment.getStatus());
-
-            String newStatus = mapStatus(transactionState, responseCode);
-            payment.setStatus(newStatus);
-            paymentRepository.save(payment);
-            System.out.println("Estado actualizado a: " + newStatus);
-
-            metadataRepository.findById(payment.getId()).ifPresent(meta -> {
-                System.out.println("Metadata encontrada");
-                System.out.println("JSON Metadata: " + meta.getJsonMetadata());
-
-                String userId = extraerUserIdDesdeJson(meta.getJsonMetadata());
-                System.out.println("userId extraído: " + userId);
-
-                if (userId != null) {
-                    Wallet wallet = walletRepository.findByUserId(userId)
-                            .orElse(new Wallet(UUID.randomUUID(), userId, new Money(BigDecimal.ZERO, Currency.COP)));
-
-                    UUID walletId = wallet.getId();
-                    BigDecimal previousBalance = wallet.getBalance().getAmount();
-
-                    WalletTransaction tx = new WalletTransaction(
-                            UUID.randomUUID(),
-                            walletId,
-                            payment.getId(),
-                            payment.getAmount(),
-                            "RECHARGE",
-                            previousBalance,
-                            previousBalance.add(payment.getAmount()),
-                            ZonedDateTime.now());
-                    walletTransactionRepository.save(tx);
-
-                    if ("APPROVED".equalsIgnoreCase(newStatus)) {
-                        wallet.recharge(new Money(payment.getAmount(), Currency.COP));
-                        walletRepository.save(wallet);
-                    }
-                }
-            });
-        });
-
-        return ResponseEntity.ok().build();
     }
 
     private String mapStatus(String transactionState, String responseCode) {
@@ -103,11 +108,10 @@ public class PayuWebhookResource {
             ObjectMapper mapper = new ObjectMapper();
             Map<String, Object> map = mapper.readValue(jsonMetadata, new TypeReference<>() {
             });
-
             Object userId = map.get("userId");
             return userId != null ? userId.toString() : null;
-
         } catch (Exception e) {
+            log.error("Error extrayendo userId del JSON", e);
             return null;
         }
     }
