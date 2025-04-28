@@ -8,13 +8,13 @@ import tech.xirius.payment.infrastructure.persistence.entity.WalletTransactionEn
 @Mapper(componentModel = "spring")
 public interface WalletTransactionMapper {
 
+    @Mapping(source = "walletId", target = "wallet.id")
+    @Mapping(target = "payment", expression = "java(transaction.getPaymentId() != null ? new tech.xirius.payment.infrastructure.persistence.entity.PaymentEntity(transaction.getPaymentId()) : null)")
+    @Mapping(source = "transactionId", target = "id")
+    WalletTransactionEntity toEntity(WalletTransaction transaction);
+
     @Mapping(source = "wallet.id", target = "walletId")
     @Mapping(source = "payment.id", target = "paymentId")
     @Mapping(source = "id", target = "transactionId")
     WalletTransaction toDomain(WalletTransactionEntity entity);
-
-    @Mapping(source = "walletId", target = "wallet.id")
-    @Mapping(source = "paymentId", target = "payment.id")
-    @Mapping(source = "transactionId", target = "id")
-    WalletTransactionEntity toEntity(WalletTransaction domain);
 }

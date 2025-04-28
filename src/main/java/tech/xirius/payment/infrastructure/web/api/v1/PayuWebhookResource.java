@@ -33,7 +33,7 @@ public class PayuWebhookResource {
         log.info("Notificación recibida: {}", payload);
 
         try {
-            String referenceCode = payload.get("reference_sale");
+            String referenceCode = payload.get("referenceSale");
             String transactionState = payload.get("polTransactionState");
             String responseCode = payload.get("polResponseCode");
 

@@ -54,4 +54,8 @@ public class PaymentEntity {
         this.provider = provider;
         this.timestamp = timestamp;
     }
+
+    public PaymentEntity(UUID id) {
+        this.id = id;
+    }
 }
