@@ -9,6 +9,7 @@ import tech.xirius.payment.infrastructure.persistence.mapper.WalletTransactionMa
 import tech.xirius.payment.infrastructure.persistence.repositories.WalletTransactionJpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @RequiredArgsConstructor
@@ -31,4 +32,11 @@ public class WalletTransactionRepositoryAdapter implements WalletTransactionRepo
                 .map(transactionMapper::toDomain)
                 .toList();
     }
+
+    @Override
+    public Optional<WalletTransaction> findByPaymentId(UUID paymentId) {
+        return transactionJpaRepository.findByPayment_Id(paymentId)
+                .map(transactionMapper::toDomain);
+    }
+
 }

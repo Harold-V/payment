@@ -45,13 +45,14 @@ public class PayuWebhookResource {
             paymentRepository.findByReferenceCode(referenceCode).ifPresent(payment -> {
                 log.info("Pago encontrado: {} con estado actual: {}", payment.getReferenceCode(), payment.getStatus());
 
+                // Siempre actualiza el estado del payment
                 String newStatus = mapStatus(transactionState, responseCode);
                 payment.setStatus(newStatus);
                 paymentRepository.save(payment);
-                log.info("Estado actualizado a: {}", newStatus);
+                log.info("Estado de Payment actualizado a: {}", newStatus);
 
                 metadataRepository.findById(payment.getId()).ifPresent(meta -> {
-                    log.info("Metadata encontrada para pago {}", payment.getId());
+                    log.info("Metadata encontrada para Payment {}", payment.getId());
 
                     String userId = extraerUserIdDesdeJson(meta.getJsonMetadata());
                     if (userId != null) {
@@ -61,23 +62,32 @@ public class PayuWebhookResource {
                                 .orElse(new Wallet(UUID.randomUUID(), userId,
                                         new Money(BigDecimal.ZERO, Currency.COP)));
 
-                        UUID walletId = wallet.getId();
-                        BigDecimal previousBalance = wallet.getBalance().getAmount();
+                        walletTransactionRepository.findByPaymentId(payment.getId())
+                                .orElseGet(() -> {
+                                    // Solo si NO EXISTE aún la transacción, la creamos en estado "PENDING"
+                                    UUID walletId = wallet.getId();
+                                    BigDecimal previousBalance = wallet.getBalance().getAmount();
 
-                        WalletTransaction tx = new WalletTransaction(
-                                UUID.randomUUID(),
-                                walletId,
-                                payment.getId(),
-                                payment.getAmount(),
-                                "RECHARGE",
-                                previousBalance,
-                                previousBalance.add(payment.getAmount()),
-                                ZonedDateTime.now());
-                        walletTransactionRepository.save(tx);
+                                    WalletTransaction tx = new WalletTransaction(
+                                            UUID.randomUUID(),
+                                            walletId,
+                                            payment.getId(),
+                                            payment.getAmount(),
+                                            "RECHARGE",
+                                            previousBalance,
+                                            previousBalance.add(payment.getAmount()),
+                                            ZonedDateTime.now());
+                                    walletTransactionRepository.save(tx);
+                                    log.info("WalletTransaction creada en estado PENDING para el Payment {}",
+                                            payment.getId());
+                                    return tx;
+                                });
 
+                        // Si el pago fue aprobado y aún no recargamos la wallet
                         if ("APPROVED".equalsIgnoreCase(newStatus)) {
                             wallet.recharge(new Money(payment.getAmount(), Currency.COP));
                             walletRepository.save(wallet);
+                            log.info("Wallet recargada para usuario: {}", userId);
                         }
                     }
                 });
