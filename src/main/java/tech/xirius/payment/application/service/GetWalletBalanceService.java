@@ -7,6 +7,9 @@ import tech.xirius.payment.domain.repository.WalletRepositoryPort;
 
 import java.math.BigDecimal;
 
+/**
+ * Servicio de aplicación para obtener el saldo de la wallet de un usuario.
+ */
 @Service
 @RequiredArgsConstructor
 public class GetWalletBalanceService implements GetWalletBalanceUseCase {

@@ -18,7 +18,7 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Servicio de aplicación para procesar pagos a través de PayU.
+ * Servicio de aplicación para procesar pagos de pse a través de PayU.
  */
 @Slf4j
 @Service

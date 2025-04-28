@@ -10,6 +10,10 @@ import tech.xirius.payment.domain.repository.WalletTransactionRepositoryPort;
 
 import java.util.List;
 
+/**
+ * Servicio de aplicación para consultar las transacciones de la wallet de un
+ * usuario.
+ */
 @Service
 @RequiredArgsConstructor
 public class GetWalletTransactionsService implements GetWalletTransactionsUseCase {

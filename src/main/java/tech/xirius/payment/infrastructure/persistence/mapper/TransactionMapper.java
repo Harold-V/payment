@@ -10,6 +10,6 @@ public interface TransactionMapper {
 
     @Mapping(target = "currency", constant = "COP")
     @Mapping(source = "transactionId", target = "id")
-    @Mapping(target = "userId", ignore = true) // <--- Corrección aquí
+    @Mapping(target = "userId", ignore = true)
     TransactionResponse toResponse(WalletTransaction transaction);
 }

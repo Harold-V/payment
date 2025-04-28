@@ -40,7 +40,7 @@ public class WalletTransactionEntity {
     private BigDecimal amount;
 
     @Column(nullable = false, length = 50)
-    private String type; // Restricción CHECK manual
+    private String type;
 
     @Column(name = "previous_balance", nullable = false, precision = 38, scale = 2)
     private BigDecimal previousBalance;
