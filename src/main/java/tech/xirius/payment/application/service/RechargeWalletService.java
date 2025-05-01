@@ -56,6 +56,7 @@ public class RechargeWalletService implements RechargeWalletUseCase {
                                 paymentId,
                                 amount,
                                 "RECHARGE",
+
                                 previousBalance,
                                 previousBalance.add(amount),
                                 ZonedDateTime.now());

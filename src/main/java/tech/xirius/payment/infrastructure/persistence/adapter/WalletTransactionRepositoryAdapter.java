@@ -1,6 +1,9 @@
 package tech.xirius.payment.infrastructure.persistence.adapter;
 
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 import tech.xirius.payment.domain.model.WalletTransaction;
 import tech.xirius.payment.domain.repository.WalletTransactionRepositoryPort;
@@ -8,7 +11,6 @@ import tech.xirius.payment.infrastructure.persistence.entity.WalletTransactionEn
 import tech.xirius.payment.infrastructure.persistence.mapper.WalletTransactionMapper;
 import tech.xirius.payment.infrastructure.persistence.repositories.WalletTransactionJpaRepository;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -26,11 +28,9 @@ public class WalletTransactionRepositoryAdapter implements WalletTransactionRepo
     }
 
     @Override
-    public List<WalletTransaction> findAllByWalletId(UUID walletId) {
-        return transactionJpaRepository.findAllByWalletId(walletId)
-                .stream()
-                .map(transactionMapper::toDomain)
-                .toList();
+    public Page<WalletTransaction> findAllByWalletId(UUID walletId, Pageable pageable) {
+        return transactionJpaRepository.findAllByWalletId(walletId, pageable)
+                .map(transactionMapper::toDomain);
     }
 
     @Override

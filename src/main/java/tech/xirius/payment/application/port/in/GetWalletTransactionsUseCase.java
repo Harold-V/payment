@@ -2,8 +2,9 @@ package tech.xirius.payment.application.port.in;
 
 import tech.xirius.payment.domain.model.WalletTransaction;
 
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface GetWalletTransactionsUseCase {
-    List<WalletTransaction> getTransactionsByUserId(String userId);
+    Page<WalletTransaction> getTransactionsByUserId(String userId, Pageable pageable);
 }
